@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('manifest_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('manifest_id')->constrained('manifests')->cascadeOnDelete();
-            $table->foreignId('ship_item_id')->constrained('ship_items')->cascadeOnDelete();
+            $table->unsignedBigInteger('manifest_id');
+            $table->unsignedBigInteger('ship_item_id');
             $table->timestamps();
         });
     }

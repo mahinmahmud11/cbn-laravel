@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::create('manifests', function (Blueprint $table) {
             $table->id();
             $table->string('manifest_number')->unique();
-            $table->foreignId('origin_agency_id')->constrained('agencies');
-            $table->foreignId('destination_agency_id')->constrained('agencies');
+            $table->unsignedBigInteger('origin_agency_id');
+            $table->unsignedBigInteger('destination_agency_id');
             $table->string('driver_name')->nullable();
             $table->string('vehicle_plate')->nullable();
             $table->enum('status', ['draft', 'transit', 'arrived', 'cancelled'])->default('draft');
             $table->text('notes')->nullable();
-            $table->foreignId('user_id')->constrained('users');
+            $table->unsignedBigInteger('user_id');
             $table->timestamps();
         });
     }
