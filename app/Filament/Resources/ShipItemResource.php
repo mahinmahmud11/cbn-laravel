@@ -20,9 +20,9 @@ class ShipItemResource extends Resource
     protected static ?string $model = ShipItem::class;
     protected static ?string $navigationLabel = 'Manajemen Resi';
     protected static ?string $navigationGroup = 'Operasional Logistik';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-truck';
 
     public static function getEloquentQuery(): Builder
     {
@@ -140,12 +140,26 @@ class ShipItemResource extends Resource
                     ]),
             ])
             ->actions([
+                Tables\Actions\Action::make('print')
+                    ->label('Cetak Label')
+                    ->icon('heroicon-o-printer')
+                    ->color('info')
+                    ->url(fn (ShipItem $record): string => route('print.resi', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn () => auth()->user()->hasRole('super_admin')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('print_bulk')
+                        ->label('Cetak Label Massal')
+                        ->icon('heroicon-o-printer')
+                        ->color('info')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $ids = $records->pluck('id')->implode(',');
+                            return redirect()->route('print.resi.bulk', ['ids' => $ids]);
+                        }),
                     Tables\Actions\DeleteBulkAction::make()
                         ->visible(fn () => auth()->user()->hasRole('super_admin')),
                 ]),

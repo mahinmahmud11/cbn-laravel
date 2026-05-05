@@ -33,15 +33,25 @@ jobs:
             # 2. Paksa sinkronisasi (Reset Hard)
             git config --global --add safe.directory "$TARGET_PATH"
             if [ ! -d ".git" ]; then
+              echo "Inisialisasi Git baru..."
               git init
               git remote add origin git@github.com:mahinmahmud11/cbn-laravel.git
               git fetch origin staging
               git checkout -f staging
             else
+              echo "Menarik pembaruan dari branch staging..."
               git fetch origin staging
               git reset --hard origin/staging
             fi
             
             # 3. Jalankan perintah Laravel
+            echo "Menjalankan Composer Install..."
             composer install --no-interaction --prefer-dist --optimize-autoloader
+            
+            echo "Membersihkan Cache Konfigurasi & Aplikasi..."
             php artisan optimize:clear
+            
+            echo "Menjalankan Migrasi Database..."
+            php artisan migrate --force
+            
+            echo "🎉 Deployment ke Staging Selesai dan Berhasil!"

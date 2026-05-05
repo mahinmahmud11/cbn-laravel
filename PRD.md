@@ -67,3 +67,41 @@ Mentransformasi sistem ERP Logistik **Citra Buana Nusantara (CBN)** dari arsitek
 3.  **Phase 3 (Admin ERP):** Instalasi FilamentPHP dan setup RBAC Spatie.
 4.  **Phase 4 (Logistic Core):** Porting Pricing Engine dan fitur Track & Trace menggunakan Livewire.
 5.  **Phase 5 (Refine):** Refactoring, optimasi query N+1, dan security audit.
+
+---
+
+## 6. Advanced Logistics Modules (Roadmap)
+
+### 6.1 Sistem POD (Proof of Delivery) & Tracking Status
+*   **Status Workflow**: Implementasi alur status pengiriman (Transit, Arrived, Out for Delivery, Delivered).
+*   **Evidence Collection**: Fitur unggah foto bukti pengiriman (POD) dan tanda tangan digital penerima saat status menjadi 'Delivered'.
+*   **Security**: Foto disimpan di *private storage* dan hanya bisa diakses oleh user berwenang.
+
+### 6.2 Manifest & Konsolidasi (Grouping)
+*   **Manifest Creation**: Pengelompokan banyak resi ke dalam satu Nomor Manifest untuk pengiriman antar cabang/Hub.
+*   **Transit Monitoring**: Melacak pergerakan manifest besar secara kolektif untuk efisiensi operasional armada.
+
+### 6.3 Manajemen Pickup (Penjemputan)
+*   **Request Form**: Form permintaan jemput paket oleh pelanggan korporat atau individu.
+*   **Dispatcher Panel**: Penugasan kurir terdekat untuk melakukan penjemputan berdasarkan lokasi permintaan.
+
+### 6.4 Keuangan & Invoicing
+*   **Financial Reporting**: Laporan omzet real-time per agen dan sistem saldo/deposit agen.
+*   **Auto-Invoicing**: Pembuatan invoice otomatis untuk pelanggan korporat (B2B) dengan siklus penagihan mingguan/bulanan.
+
+### 6.5 Manajemen Armada & Driver
+*   **Fleet Database**: Pendataan kendaraan (Plat nomor, masa berlaku STNK/KIR, kapasitas angkut).
+*   **Driver Assignment**: Penugasan driver ke manifest atau rute pengiriman tertentu.
+
+### 6.6 Customer CRM (Address Book)
+*   **Frequent Customer DB**: Database pengirim dan penerima tetap untuk mempercepat proses input resi (Auto-complete data pelanggan).
+
+---
+
+## 7. Development Phases (Updated)
+1.  **Phase 1 (Infra):** Setup Docker (Sail), PHP 8.3, Laravel 11, dan konfigurasi `.env`.
+2.  **Phase 2 (Data Bridge):** Pembuatan Eloquent Models khusus untuk tabel utama legacy.
+3.  **Phase 3 (Core ERP):** Instalasi FilamentPHP, setup RBAC, dan fitur Cetak Resi (Thermal/Bulk).
+4.  **Phase 4 (Logistic Advanced):** Implementasi Sistem POD, Manajemen Manifest, dan Pickup Request.
+5.  **Phase 5 (Finance & CRM):** Invoicing otomatis dan integrasi CRM Address Book.
+6.  **Phase 6 (Refine):** Refactoring, optimasi query N+1, dan security audit.
