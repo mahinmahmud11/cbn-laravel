@@ -1,6 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+
+Route::get('/force-update-db-99', function () {
+    Artisan::call('migrate:install'); // Pastikan tabel migrasi ada
+    Artisan::call('migrate', ['--force' => true]);
+    return "Database updated: " . Artisan::output();
+});
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,9 +27,4 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/print/resi/bulk', [App\Http\Controllers\PrintController::class, 'resiThermalBulk'])->name('print.resi.bulk');
     Route::get('/print/resi/{record}', [App\Http\Controllers\PrintController::class, 'resiThermal'])->name('print.resi');
     Route::get('/admin/pods/{filename}', [App\Http\Controllers\PodController::class, 'show'])->name('admin.pods.show');
-});
-
-Route::get('/admin-tools/migrate', function () {
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    return "Database updated: " . \Illuminate\Support\Facades\Artisan::output();
 });

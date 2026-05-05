@@ -32,6 +32,12 @@ jobs:
             
             # 2. Paksa sinkronisasi (Reset Hard)
             git config --global --add safe.directory "$TARGET_PATH"
+            
+            # Hapus semua file cache fisik secara agresif
+            echo "Membersihkan Cache Fisik (Views & Bootstrap)..."
+            rm -rf storage/framework/views/*.php
+            rm -rf bootstrap/cache/*.php
+            
             if [ ! -d ".git" ]; then
               echo "Inisialisasi Git baru..."
               git init
@@ -45,13 +51,10 @@ jobs:
             fi
             
             # 3. Jalankan perintah Laravel
-            echo "Membersihkan Cache Bootstrap..."
-            rm -rf bootstrap/cache/*.php
-            
             echo "Menjalankan Composer Install..."
             composer install --no-interaction --prefer-dist --optimize-autoloader
             
-            echo "Membersihkan Cache Konfigurasi & Aplikasi..."
+            echo "Membersihkan Cache Konfigurasi & Aplikasi via Artisan..."
             php artisan optimize:clear
             
             echo "Menjalankan Migrasi Database..."
