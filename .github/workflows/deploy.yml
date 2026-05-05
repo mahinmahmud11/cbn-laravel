@@ -22,13 +22,12 @@ jobs:
             # 1. Navigasi
             cd /home/u7942055/public_html/dev.citrabuananusantara.com
             
-            # 2. Pembersihan Database Manual (Reset Status)
-            echo "Mereset status tabel shipment_pods di database..."
-            php artisan db:wipe --force || (
-                mysql -u${{ secrets.DB_USERNAME }} -p${{ secrets.DB_PASSWORD }} -e "DROP TABLE IF EXISTS shipment_pods; DELETE FROM migrations WHERE migration LIKE '%shipment_pods%';" ${{ secrets.DB_DATABASE }}
-            )
+            # 2. Reset OPcache secara paksa (Anti-Ghaib)
+            echo "<?php opcache_reset(); echo 'OPcache Reset Success';" > public/reset-opcache.php
+            curl -s https://dev.citrabuananusantara.com/reset-opcache.php
+            rm public/reset-opcache.php
             
-            # 3. Nuklir Mode (Bersihkan Folder)
+            # 3. Pembersihan Database & File
             git config --global --add safe.directory $(pwd)
             git clean -fd
             rm -rf database/migrations/*
@@ -36,11 +35,14 @@ jobs:
             git fetch origin staging
             git reset --hard origin/staging
             
-            # 4. Hapus cache fisik
+            # 4. Sed Agresif: Hapus paksa semua baris foreign key di semua file migrasi
+            echo "Menghapus paksa semua baris foreign key dari folder migrasi di server..."
+            find database/migrations -type f -exec sed -i '/foreign/d' {} +
+            find database/migrations -type f -exec sed -i '/constrained/d' {} +
+            
+            # 5. Sinkronisasi Laravel
             rm -rf bootstrap/cache/*.php
             rm -rf storage/framework/views/*.php
-            
-            # 5. Sesuaikan DB_HOST
             sed -i 's/DB_HOST=127.0.0.1/DB_HOST=localhost/g' .env
             
             # 6. Jalankan instalasi dan optimasi
