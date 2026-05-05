@@ -19,37 +19,45 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Navigasi ke folder root proyek (berdasarkan bukti screenshot)
-            cd ~/public_html/dev.citrabuananusantara.com
-            echo "Deploying to: $(pwd)"
+            # 1. Identifikasi User dan Lokasi
+            echo "USER: $(id)"
+            echo "HOME: $HOME"
+            
+            # Gunakan path absolut berdasarkan screenshot File Manager
+            TARGET_PATH="/home/u7942055/public_html/dev.citrabuananusantara.com"
+            
+            if [ ! -d "$TARGET_PATH" ]; then
+                echo "Folder absolut tidak ditemukan! Mencari folder alternatif..."
+                TARGET_PATH=$(find $HOME -name "dev.citrabuananusantara.com" -type d | head -n 1)
+            fi
+            
+            cd "$TARGET_PATH"
+            echo "Current Directory: $(pwd)"
             
             # 2. Reset dan tarik kode terbaru
             git config --global --add safe.directory $(pwd)
-            echo "Menarik pembaruan dari branch staging..."
             git fetch origin staging
             git reset --hard origin/staging
             
-            # 3. Buat file test di dalam folder PUBLIC (karena subdomain diarahkan ke sana)
-            echo "<?php echo 'Deployment Success - ' . date('Y-m-d H:i:s'); ?>" > public/test-deploy.php
+            # 3. BRUTE FORCE TEST FILES (Buat di semua kemungkinan pintu masuk)
+            TEST_CONTENT="<?php echo 'Deployment Success - ' . date('Y-m-d H:i:s') . ' - Path: ' . __FILE__; ?>"
+            
+            echo "$TEST_CONTENT" > public/test-deploy.php
+            echo "$TEST_CONTENT" > test-deploy.php
+            echo "$TEST_CONTENT" > ../test-deploy.php
             
             # 4. Hapus cache fisik secara agresif
-            echo "Membersihkan Cache Fisik..."
             rm -rf bootstrap/cache/*.php
             rm -rf storage/framework/views/*.php
             
             # 5. Sesuaikan DB_HOST
-            echo "Menyesuaikan Konfigurasi Database (DB_HOST)..."
             sed -i 's/DB_HOST=127.0.0.1/DB_HOST=localhost/g' .env
             
             # 6. Jalankan instalasi dan optimasi
-            echo "Menjalankan Composer Install..."
             composer install --no-interaction --prefer-dist --optimize-autoloader
-            
-            echo "Membersihkan Cache Konfigurasi & Aplikasi via Artisan..."
             php artisan optimize:clear
             
             # 7. EKSEKUSI MIGRASI SECARA PAKSA
-            echo "Menjalankan Migrasi Database..."
             php artisan migrate --force
             
-            echo "🎉 Deployment ke Staging Selesai dan Berhasil!"
+            echo "🎉 Deployment Selesai!"
