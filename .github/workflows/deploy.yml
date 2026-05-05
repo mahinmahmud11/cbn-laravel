@@ -19,54 +19,14 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Navigasi ke folder (yang seharusnya sudah kosong)
+            # 1. Navigasi
             cd /home/u7942055/public_html/dev.citrabuananusantara.com
             
-            # 2. Fresh Clone jika folder kosong atau tidak ada .git
-            if [ ! -d ".git" ]; then
-                echo "Folder kosong terdeteksi. Melakukan Fresh Clone..."
-                git clone -b staging git@github.com:mahinmahmud11/cbn-laravel.git .
-            else
-                echo "Sinkronisasi kode..."
-                git fetch origin staging
-                git reset --hard origin/staging
-            fi
+            # 2. Buat file pengetesan paling sederhana
+            echo "<?php echo '<h1>Halo! Folder ini Aktif.</h1><p>Lokasi: ' . __FILE__ . '</p>'; ?>" > index.php
             
-            # 3. Pulihkan file .env (Karena tadi dihapus, kita buat ulang dari base)
-            # Catatan: Pastikan rahasia DB ada di GitHub Secrets
-            if [ ! -f ".env" ]; then
-                echo "Membuat file .env baru..."
-                cp .env.example .env
-                sed -i 's/DB_DATABASE=laravel/DB_DATABASE=${{ secrets.DB_DATABASE }}/g' .env
-                sed -i 's/DB_USERNAME=root/DB_USERNAME=${{ secrets.DB_USERNAME }}/g' .env
-                sed -i 's/DB_PASSWORD=/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/g' .env
-                sed -i 's/DB_HOST=127.0.0.1/DB_HOST=localhost/g' .env
-                php artisan key:generate
-            fi
+            # 3. Buat folder public dan isinya (jika subdomain mengarah ke sini)
+            mkdir -p public
+            echo "<?php echo '<h1>Halo! Folder PUBLIC ini Aktif.</h1><p>Lokasi: ' . __FILE__ . '</p>'; ?>" > public/index.php
             
-            # 4. Suntik jalankan.php Baru
-            echo "<?php
-            define('LARAVEL_START', microtime(true));
-            require __DIR__.'/../vendor/autoload.php';
-            \$app = require_once __DIR__.'/../bootstrap/app.php';
-            \$kernel = \$app->make(Illuminate\Contracts\Console\Kernel::class);
-            
-            echo '<h1>Laravel Fresh Installer</h1>';
-            echo '<pre>';
-            try {
-                \$status = \$kernel->call('migrate', ['--force' => true]);
-                echo \Illuminate\Support\Facades\Artisan::output();
-                echo '\n\n✅ Fresh Install Berhasil!';
-            } catch (\Exception \$e) {
-                echo '❌ Error: ' . \$e->getMessage();
-            }
-            echo '</pre>';
-            " > public/jalankan.php
-            
-            # 5. Instalasi Dependensi
-            composer install --no-interaction --prefer-dist --optimize-autoloader
-            
-            # 6. Jalankan Migrasi Awal
-            php artisan migrate --force
-            
-            echo "🎉 Fresh Deployment Selesai!"
+            echo "Pengetesan jalur selesai."
