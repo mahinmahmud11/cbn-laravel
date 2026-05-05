@@ -34,6 +34,10 @@ jobs:
             rm -rf bootstrap/cache/*.php
             rm -rf storage/framework/views/*.php
             
+            # Ubah DB_HOST dari 127.0.0.1 menjadi localhost di file .env server
+            echo "Menyesuaikan Konfigurasi Database (DB_HOST)..."
+            sed -i 's/DB_HOST=127.0.0.1/DB_HOST=localhost/g' .env
+            
             # 4. Jalankan instalasi dan optimasi
             echo "Menjalankan Composer Install..."
             composer install --no-interaction --prefer-dist --optimize-autoloader
