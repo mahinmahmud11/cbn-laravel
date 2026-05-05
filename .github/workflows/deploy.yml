@@ -22,27 +22,32 @@ jobs:
             # 1. Navigasi
             cd /home/u7942055/public_html/dev.citrabuananusantara.com
             
-            # 2. Reset OPcache secara paksa (Anti-Ghaib)
-            echo "<?php opcache_reset(); echo 'OPcache Reset Success';" > public/reset-opcache.php
-            curl -s https://dev.citrabuananusantara.com/reset-opcache.php
-            rm public/reset-opcache.php
+            # 2. PEMBERSIHAN TOTAL (Setara hapus folder)
+            echo "Menghapus semua file kecuali .git dan .env..."
+            find . -maxdepth 1 ! -name '.git' ! -name '.env' ! -name '.' -exec rm -rf {} +
             
-            # 3. Pembersihan Database & File
+            # 3. Ambil Kode Bersih dari GitHub
             git config --global --add safe.directory $(pwd)
-            git clean -fd
-            rm -rf database/migrations/*
-            
+            git checkout .
             git fetch origin staging
             git reset --hard origin/staging
             
-            # 4. Sed Agresif: Hapus paksa semua baris foreign key di semua file migrasi
-            echo "Menghapus paksa semua baris foreign key dari folder migrasi di server..."
-            find database/migrations -type f -exec sed -i '/foreign/d' {} +
-            find database/migrations -type f -exec sed -i '/constrained/d' {} +
+            # 4. RESET DATABASE SECARA TOTAL (Manual SQL)
+            echo "Mereset Database..."
+            mysql -u${{ secrets.DB_USERNAME }} -p${{ secrets.DB_PASSWORD }} -e "
+                SET FOREIGN_KEY_CHECKS = 0;
+                SET @tables = NULL;
+                SELECT GROUP_CONCAT('\`', table_name, '\`') INTO @tables
+                  FROM information_schema.tables
+                  WHERE table_schema = '${{ secrets.DB_DATABASE }}';
+                SET @tables = CONCAT('DROP TABLE IF EXISTS ', @tables);
+                PREPARE stmt FROM @tables;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+                SET FOREIGN_KEY_CHECKS = 1;
+            " ${{ secrets.DB_DATABASE }} || echo "Gagal reset DB secara otomatis, silakan manual di phpMyAdmin"
             
             # 5. Sinkronisasi Laravel
-            rm -rf bootstrap/cache/*.php
-            rm -rf storage/framework/views/*.php
             sed -i 's/DB_HOST=127.0.0.1/DB_HOST=localhost/g' .env
             
             # 6. Jalankan instalasi dan optimasi
@@ -52,4 +57,4 @@ jobs:
             # 7. Jalankan Migrasi
             php artisan migrate --force
             
-            echo "🎉 Deployment Selesai!"
+            echo "🎉 Deployment Selesai dengan Kondisi Bersih!"
