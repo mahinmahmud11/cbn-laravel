@@ -19,17 +19,47 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Lokasi Alternatif (Sejajar dengan public_html)
-            TARGET_ALT="/home/u7942055/dev.citrabuananusantara.com"
+            # 1. Navigasi dan Pastikan Folder Ada
+            mkdir -p /home/u7942055/public_html/dev.citrabuananusantara.com
+            cd /home/u7942055/public_html/dev.citrabuananusantara.com
             
-            echo "Mengecek lokasi: $TARGET_ALT"
-            mkdir -p "$TARGET_ALT/public"
-            echo "<?php echo '<h1>Halo! Ini Lokasi SIBLING public_html.</h1>'; ?>" > "$TARGET_ALT/public/index.php"
-            echo "<?php echo '<h1>Halo! Ini Lokasi SIBLING public_html (Root).</h1>'; ?>" > "$TARGET_ALT/index.php"
+            # 2. Fresh Clone via HTTPS (Jika folder kosong)
+            if [ ! -d ".git" ]; then
+                echo "Melakukan Fresh Clone via HTTPS..."
+                rm -rf * .[^.]* # Hapus sisa file tersembunyi
+                git clone -b staging https://github.com/mahinmahmud11/cbn-laravel.git .
+            else
+                echo "Sinkronisasi kode..."
+                git config --global --add safe.directory $(pwd)
+                git fetch origin staging
+                git reset --hard origin/staging
+            fi
             
-            # 2. Lokasi di dalam Subdomains folder (Sering ada di cPanel)
-            TARGET_SUB="/home/u7942055/public_html/subdomains/dev"
-            mkdir -p "$TARGET_SUB/public"
-            echo "<?php echo '<h1>Halo! Ini Lokasi SUBDOMAINS folder.</h1>'; ?>" > "$TARGET_SUB/public/index.php"
+            # 3. Konfigurasi .env (Force Update)
+            echo "Mengonfigurasi file .env..."
+            cp .env.example .env
+            sed -i "s/DB_HOST=127.0.0.1/DB_HOST=localhost/g" .env
+            sed -i "s/DB_DATABASE=laravel/DB_DATABASE=${{ secrets.DB_DATABASE }}/g" .env
+            sed -i "s/DB_USERNAME=root/DB_USERNAME=${{ secrets.DB_USERNAME }}/g" .env
+            sed -i "s/DB_PASSWORD=/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/g" .env
+            php artisan key:generate --force
             
-            echo "Pencarian folder aktif selesai."
+            # 4. Instalasi & Optimasi
+            echo "Menginstal dependensi..."
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+            
+            # 5. Eksekusi Migrasi
+            echo "Menjalankan migrasi database..."
+            php artisan migrate --force
+            
+            # 6. Buat installer darurat di public/
+            echo "<?php
+            define('LARAVEL_START', microtime(true));
+            require __DIR__.'/../vendor/autoload.php';
+            \$app = require_once __DIR__.'/../bootstrap/app.php';
+            \$kernel = \$app->make(Illuminate\Contracts\Console\Kernel::class);
+            echo '<h1>Deployment Berhasil!</h1><p>Database sudah dimigrasi.</p>';
+            " > public/index-ok.php
+            
+            php artisan optimize:clear
+            echo "🎉 SUPER INSTALLER SELESAI!"
