@@ -39,4 +39,14 @@ class PrintController extends Controller
             'manifest' => $record->load(['shipItems', 'originAgency', 'destinationAgency']),
         ]);
     }
+
+    /**
+     * Tampilkan halaman cetak dokumen Invoice.
+     */
+    public function invoice(\App\Models\Invoice $record)
+    {
+        return view('print.invoice', [
+            'invoice' => $record->load(['shipItems']),
+        ]);
+    }
 }

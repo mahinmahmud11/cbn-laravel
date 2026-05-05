@@ -15,6 +15,7 @@ Route::get('/cek-tarif', function () {
 })->name('public.tarif');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/print/invoice/{record}', [App\Http\Controllers\PrintController::class, 'invoice'])->name('print.invoice');
     Route::get('/print/manifest/{record}', [App\Http\Controllers\PrintController::class, 'manifest'])->name('print.manifest');
     Route::get('/print/resi/bulk', [App\Http\Controllers\PrintController::class, 'resiThermalBulk'])->name('print.resi.bulk');
     Route::get('/print/resi/{record}', [App\Http\Controllers\PrintController::class, 'resiThermal'])->name('print.resi');

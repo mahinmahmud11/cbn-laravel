@@ -45,6 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 \App\Filament\Widgets\StatsOverview::class,
+                \App\Filament\Widgets\MonthlyRevenue::class,
                 \App\Filament\Widgets\ShipmentTrends::class,
                 \App\Filament\Widgets\RecentShipments::class,
             ])
