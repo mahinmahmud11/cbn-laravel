@@ -29,4 +29,14 @@ class PrintController extends Controller
             'items' => $items,
         ]);
     }
+
+    /**
+     * Tampilkan halaman cetak dokumen Manifest.
+     */
+    public function manifest(\App\Models\Manifest $record)
+    {
+        return view('print.manifest', [
+            'manifest' => $record->load(['shipItems', 'originAgency', 'destinationAgency']),
+        ]);
+    }
 }
