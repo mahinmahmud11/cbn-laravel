@@ -19,44 +19,29 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Cari lokasi asli folder tersebut di server
-            TARGET_PATH=$(find $HOME -name "dev.citrabuananusantara.com" -type d | head -n 1)
-            echo "Deploying to: $TARGET_PATH"
+            # 1. Langsung menuju folder website yang benar
+            cd ~/public_html/dev.citrabuananusantara.com
+            echo "Deploying to: $(pwd)"
             
-            if [ -z "$TARGET_PATH" ]; then
-              echo "Folder tidak ditemukan!"
-              exit 1
-            fi
+            # 2. Reset dan tarik kode terbaru
+            git config --global --add safe.directory $(pwd)
+            echo "Menarik pembaruan dari branch staging..."
+            git fetch origin staging
+            git reset --hard origin/staging
             
-            cd "$TARGET_PATH"
-            
-            # 2. Paksa sinkronisasi (Reset Hard)
-            git config --global --add safe.directory "$TARGET_PATH"
-            
-            # Hapus semua file cache fisik secara agresif
-            echo "Membersihkan Cache Fisik (Views & Bootstrap)..."
-            rm -rf storage/framework/views/*.php
+            # 3. Hapus cache fisik untuk memastikan tidak ada file nyangkut
+            echo "Membersihkan Cache Fisik..."
             rm -rf bootstrap/cache/*.php
+            rm -rf storage/framework/views/*.php
             
-            if [ ! -d ".git" ]; then
-              echo "Inisialisasi Git baru..."
-              git init
-              git remote add origin git@github.com:mahinmahmud11/cbn-laravel.git
-              git fetch origin staging
-              git checkout -f staging
-            else
-              echo "Menarik pembaruan dari branch staging..."
-              git fetch origin staging
-              git reset --hard origin/staging
-            fi
-            
-            # 3. Jalankan perintah Laravel
+            # 4. Jalankan instalasi dan optimasi
             echo "Menjalankan Composer Install..."
             composer install --no-interaction --prefer-dist --optimize-autoloader
             
             echo "Membersihkan Cache Konfigurasi & Aplikasi via Artisan..."
             php artisan optimize:clear
             
+            # 5. EKSEKUSI MIGRASI SECARA PAKSA
             echo "Menjalankan Migrasi Database..."
             php artisan migrate --force
             
