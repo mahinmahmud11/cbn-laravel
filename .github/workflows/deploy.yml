@@ -19,24 +19,29 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # Masuk ke direktori yang benar sesuai File Manager cPanel
-            cd /home/u7942055/public_html/dev.citrabuananusantara.com
+            # 1. Cari lokasi asli folder tersebut di server
+            TARGET_PATH=$(find $HOME -name "dev.citrabuananusantara.com" -type d | head -n 1)
+            echo "Deploying to: $TARGET_PATH"
             
-            # Konfigurasi agar git mengizinkan direktori ini
-            git config --global --add safe.directory /home/u7942055/public_html/dev.citrabuananusantara.com
+            if [ -z "$TARGET_PATH" ]; then
+              echo "Folder tidak ditemukan!"
+              exit 1
+            fi
             
-            # Cek jika folder masih kosong, lakukan inisialisasi awal
+            cd "$TARGET_PATH"
+            
+            # 2. Paksa sinkronisasi (Reset Hard)
+            git config --global --add safe.directory "$TARGET_PATH"
             if [ ! -d ".git" ]; then
               git init
               git remote add origin git@github.com:mahinmahmud11/cbn-laravel.git
               git fetch origin staging
               git checkout -f staging
             else
-              # Jika sudah ada git, cukup tarik kode terbaru
-              git pull origin staging
+              git fetch origin staging
+              git reset --hard origin/staging
             fi
             
-            # Jalankan perintah standar Laravel
+            # 3. Jalankan perintah Laravel
             composer install --no-interaction --prefer-dist --optimize-autoloader
-            php artisan migrate --force
             php artisan optimize:clear
