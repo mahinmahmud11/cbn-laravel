@@ -19,23 +19,28 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Cari lokasi folder secara rekursif berdasarkan file artisan
-            echo "Mencari lokasi folder instalasi Laravel..."
-            ARTISAN_PATH=$(find $HOME -name "artisan" -path "*/dev.citrabuananusantara.com/*" -type f | head -n 1)
+            # 1. Tebak lokasi folder berdasarkan pola umum cPanel
+            echo "Mencoba deteksi folder..."
+            POSSIBLE_PATHS=(
+                "$HOME/public_html/dev.citrabuananusantara.com"
+                "$HOME/dev.citrabuananusantara.com"
+                "$HOME/public_html/dev"
+                "$HOME/domains/dev.citrabuananusantara.com/public_html"
+            )
             
-            if [ -z "$ARTISAN_PATH" ]; then
-                echo "File artisan untuk dev.citrabuananusantara.com tidak ditemukan! Mencoba pencarian umum..."
-                ARTISAN_PATH=$(find $HOME -name "artisan" -type f | grep "dev" | head -n 1)
-            fi
+            for path in "${POSSIBLE_PATHS[@]}"; do
+                if [ -d "$path" ]; then
+                    cd "$path"
+                    echo "Ditemukan di: $(pwd)"
+                    break
+                fi
+            done
             
-            if [ -z "$ARTISAN_PATH" ]; then
-                echo "Folder tidak ditemukan sama sekali!"
+            if [ "$(pwd)" == "$HOME" ]; then
+                echo "Gagal menemukan folder target! Daftar folder di home:"
+                ls -F $HOME
                 exit 1
             fi
-            
-            TARGET_PATH=$(dirname "$ARTISAN_PATH")
-            cd "$TARGET_PATH"
-            echo "Ditemukan di: $(pwd)"
             
             # 2. Reset dan tarik kode terbaru
             git config --global --add safe.directory $(pwd)
