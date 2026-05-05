@@ -19,8 +19,8 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Langsung menuju folder website yang benar (berdasarkan screenshot File Manager)
-            cd ~/public_html/dev.citrabuananusantara.com
+            # 1. Langsung menuju folder website yang benar (sibling of public_html)
+            cd ~/dev.citrabuananusantara.com
             echo "Deploying to: $(pwd)"
             
             # 2. Reset dan tarik kode terbaru
