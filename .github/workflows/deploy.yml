@@ -45,6 +45,9 @@ jobs:
             fi
             
             # 3. Jalankan perintah Laravel
+            echo "Membersihkan Cache Bootstrap..."
+            rm -rf bootstrap/cache/*.php
+            
             echo "Menjalankan Composer Install..."
             composer install --no-interaction --prefer-dist --optimize-autoloader
             
