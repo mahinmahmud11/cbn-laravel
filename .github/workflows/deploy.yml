@@ -19,8 +19,16 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Langsung menuju folder website yang benar
-            cd ~/public_html/dev.citrabuananusantara.com
+            # 1. Verifikasi lokasi folder
+            echo "Mencari lokasi folder..."
+            if [ -d "$HOME/public_html/dev.citrabuananusantara.com" ]; then
+                cd "$HOME/public_html/dev.citrabuananusantara.com"
+            elif [ -d "$HOME/dev.citrabuananusantara.com" ]; then
+                cd "$HOME/dev.citrabuananusantara.com"
+            else
+                echo "Folder dev.citrabuananusantara.com tidak ditemukan!"
+                exit 1
+            fi
             echo "Deploying to: $(pwd)"
             
             # 2. Reset dan tarik kode terbaru
@@ -28,6 +36,9 @@ jobs:
             echo "Menarik pembaruan dari branch staging..."
             git fetch origin staging
             git reset --hard origin/staging
+            
+            # 3. Buat file test untuk verifikasi akses via browser
+            echo "<?php echo 'Deployment Success - ' . date('Y-m-d H:i:s'); ?>" > public/test-deploy.php
             
             # 3. Hapus cache fisik untuk memastikan tidak ada file nyangkut
             echo "Membersihkan Cache Fisik..."
