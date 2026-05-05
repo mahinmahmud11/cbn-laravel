@@ -19,14 +19,17 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Navigasi
-            cd /home/u7942055/public_html/dev.citrabuananusantara.com
+            # 1. Lokasi Alternatif (Sejajar dengan public_html)
+            TARGET_ALT="/home/u7942055/dev.citrabuananusantara.com"
             
-            # 2. Buat file pengetesan paling sederhana
-            echo "<?php echo '<h1>Halo! Folder ini Aktif.</h1><p>Lokasi: ' . __FILE__ . '</p>'; ?>" > index.php
+            echo "Mengecek lokasi: $TARGET_ALT"
+            mkdir -p "$TARGET_ALT/public"
+            echo "<?php echo '<h1>Halo! Ini Lokasi SIBLING public_html.</h1>'; ?>" > "$TARGET_ALT/public/index.php"
+            echo "<?php echo '<h1>Halo! Ini Lokasi SIBLING public_html (Root).</h1>'; ?>" > "$TARGET_ALT/index.php"
             
-            # 3. Buat folder public dan isinya (jika subdomain mengarah ke sini)
-            mkdir -p public
-            echo "<?php echo '<h1>Halo! Folder PUBLIC ini Aktif.</h1><p>Lokasi: ' . __FILE__ . '</p>'; ?>" > public/index.php
+            # 2. Lokasi di dalam Subdomains folder (Sering ada di cPanel)
+            TARGET_SUB="/home/u7942055/public_html/subdomains/dev"
+            mkdir -p "$TARGET_SUB/public"
+            echo "<?php echo '<h1>Halo! Ini Lokasi SUBDOMAINS folder.</h1>'; ?>" > "$TARGET_SUB/public/index.php"
             
-            echo "Pengetesan jalur selesai."
+            echo "Pencarian folder aktif selesai."
