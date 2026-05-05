@@ -19,8 +19,8 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Langsung menuju folder website yang benar (sibling of public_html)
-            cd ~/dev.citrabuananusantara.com
+            # 1. Navigasi ke folder root proyek (berdasarkan bukti screenshot)
+            cd ~/public_html/dev.citrabuananusantara.com
             echo "Deploying to: $(pwd)"
             
             # 2. Reset dan tarik kode terbaru
@@ -29,8 +29,8 @@ jobs:
             git fetch origin staging
             git reset --hard origin/staging
             
-            # 3. Buat file test langsung di root (karena public di-merge ke root)
-            echo "<?php echo 'Deployment Success - ' . date('Y-m-d H:i:s'); ?>" > test-deploy.php
+            # 3. Buat file test di dalam folder PUBLIC (karena subdomain diarahkan ke sana)
+            echo "<?php echo 'Deployment Success - ' . date('Y-m-d H:i:s'); ?>" > public/test-deploy.php
             
             # 4. Hapus cache fisik secara agresif
             echo "Membersihkan Cache Fisik..."
