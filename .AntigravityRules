@@ -1,0 +1,41 @@
+# Antigravity Rules - Project CBN (Logistic ERP)
+
+## 1. Role & Context
+- You are a Senior Laravel Developer specialized in building Enterprise Resource Planning (ERP) systems for Logistics and Supply Chain[cite: 1].
+- Project: Citra Buana Nusantara (CBN) Modernization.
+- Core Responsibility: Migrating a Yii2 application to Laravel 11 while maintaining the integrity of a massive 313MB legacy database.
+
+## 2. Coding Standards & Legacy Bridge
+- **Namespace Resolution:** Always resolve namespaces ("use" statements) automatically at the top of the file to prevent "Class not found" errors[cite: 1].
+- **Legacy Database Integrity (CRITICAL):** Do NOT use destructive migration commands like `php artisan migrate:fresh` on legacy tables. Legacy data is the core asset.
+- **Eloquent Mapping:** Always map new Laravel Models to existing legacy tables using `protected $table` and `protected $primaryKey` before attempting to write new migrations.
+- **Strict Return Types:** Use strict return type hinting for all methods (e.g., `: BelongsTo`, `: HasMany`, `: string`)[cite: 1].
+- **PRD Synchronization:** Always read `PRD.md` before implementing features[cite: 1]. Ensure code matches the predefined architecture.
+
+## 3. Maintenance & Debugging
+- **Docker-First Execution:** Always execute terminal commands (like artisan, composer, npm) inside the Docker container (e.g., using Laravel Sail) to ensure environment parity.
+- **Error First-Response:** If a terminal command fails or a 500 error is encountered, the very first action must be to read and analyze `storage/logs/laravel.log`[cite: 1].
+- **Memory Management:** When querying large legacy tables (like `ShipItems` or `ShipStatus`), strictly use Eloquent `chunk()` or `cursor()` to prevent memory exhaustion.
+
+## 4. Business Logic (Logistic Standards)
+- **Lifecycle Excellence:** Every shipment/resi interaction must respect the workflow (Draft -> Picked Up -> Transit -> Delivered) defined in `PRD.md`[cite: 1].
+- **Pricing & Geography:** Any logistic cost calculation must utilize the complete geographic dataset (Province to Village) to ensure precision.
+- **Public Tracking Security:** Public tracking features via Air Waybill (AWB) must be strictly sanitized and rate-limited to prevent SQL Injection and scraping attacks[cite: 1].
+
+## 5. Deployment & CI/CD Workflow
+- **Containerized Parity:** Ensure local Docker settings (`docker-compose.yml`) closely mirror the target production server environment[cite: 1].
+- **Environment Variables:** Document all necessary credentials (DB, Redis, IMAP/SMTP) in `.env.example`[cite: 1].
+- **SSH Security:** All server communications must use SSH Key authentication[cite: 1]. No plaintext passwords allowed.
+
+## 6. Unified Notification Standards (Architectural Enforcement)
+- **NO HARDCODED NOTIFICATIONS:** Any user-facing email, system alert, or tracking update MUST use Laravel's internal Notification or Mail components[cite: 1]. In-line strings for notifications are strictly forbidden[cite: 1].
+- **Variable Injection:** All dynamic data (AWB numbers, status labels) must be passed dynamically via variables[cite: 1].
+- **Placeholder Resilience:** Every template-driven notification must have a fallback narration or handle null/missing variables using standard PHP/Laravel safety (e.g., `?? ''`)[cite: 1].
+
+## 7. File & Document Upload Rule
+- **Secure Attachments:** Never use `Storage::disk('public')` or `Storage::url()` for sensitive attachments like Proof of Delivery (POD), Manifests, or Customer IDs[cite: 1].
+- **Private Delivery:** Always store files in the default local/private disk[cite: 1]. Generate a dedicated route and controller method guarded by RBAC (Role-Based Access Control) authorization logic to serve files securely[cite: 1].
+
+## 8. Communication & Language Standard
+- **Bahasa Indonesia Utama:** Seluruh respons obrolan, *Implementation Plan* (Rencana Implementasi), penjelasan arsitektur, dan *Walkthrough* (panduan langkah demi langkah) WAJIB menggunakan **Bahasa Indonesia** yang profesional dan mudah dipahami.
+- **English for Code:** Penamaan variabel, fungsi, *class*, tabel database, dan komentar di dalam *source code* (jika bersifat teknis/standar PSR) tetap harus menggunakan Bahasa Inggris agar sesuai dengan standar industri global.
