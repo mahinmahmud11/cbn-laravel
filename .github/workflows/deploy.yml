@@ -19,28 +19,9 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Tebak lokasi folder berdasarkan pola umum cPanel
-            echo "Mencoba deteksi folder..."
-            POSSIBLE_PATHS=(
-                "$HOME/public_html/dev.citrabuananusantara.com"
-                "$HOME/dev.citrabuananusantara.com"
-                "$HOME/public_html/dev"
-                "$HOME/domains/dev.citrabuananusantara.com/public_html"
-            )
-            
-            for path in "${POSSIBLE_PATHS[@]}"; do
-                if [ -d "$path" ]; then
-                    cd "$path"
-                    echo "Ditemukan di: $(pwd)"
-                    break
-                fi
-            done
-            
-            if [ "$(pwd)" == "$HOME" ]; then
-                echo "Gagal menemukan folder target! Daftar folder di home:"
-                ls -F $HOME
-                exit 1
-            fi
+            # 1. Langsung menuju folder website yang benar (berdasarkan screenshot File Manager)
+            cd ~/public_html/dev.citrabuananusantara.com
+            echo "Deploying to: $(pwd)"
             
             # 2. Reset dan tarik kode terbaru
             git config --global --add safe.directory $(pwd)
@@ -48,26 +29,26 @@ jobs:
             git fetch origin staging
             git reset --hard origin/staging
             
-            # 3. Buat file test untuk verifikasi akses via browser
-            echo "<?php echo 'Deployment Success - ' . date('Y-m-d H:i:s'); ?>" > public/test-deploy.php
+            # 3. Buat file test langsung di root (karena public di-merge ke root)
+            echo "<?php echo 'Deployment Success - ' . date('Y-m-d H:i:s'); ?>" > test-deploy.php
             
-            # 3. Hapus cache fisik untuk memastikan tidak ada file nyangkut
+            # 4. Hapus cache fisik secara agresif
             echo "Membersihkan Cache Fisik..."
             rm -rf bootstrap/cache/*.php
             rm -rf storage/framework/views/*.php
             
-            # Ubah DB_HOST dari 127.0.0.1 menjadi localhost di file .env server
+            # 5. Sesuaikan DB_HOST
             echo "Menyesuaikan Konfigurasi Database (DB_HOST)..."
             sed -i 's/DB_HOST=127.0.0.1/DB_HOST=localhost/g' .env
             
-            # 4. Jalankan instalasi dan optimasi
+            # 6. Jalankan instalasi dan optimasi
             echo "Menjalankan Composer Install..."
             composer install --no-interaction --prefer-dist --optimize-autoloader
             
             echo "Membersihkan Cache Konfigurasi & Aplikasi via Artisan..."
             php artisan optimize:clear
             
-            # 5. EKSEKUSI MIGRASI SECARA PAKSA
+            # 7. EKSEKUSI MIGRASI SECARA PAKSA
             echo "Menjalankan Migrasi Database..."
             php artisan migrate --force
             
