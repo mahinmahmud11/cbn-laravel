@@ -21,24 +21,21 @@ jobs:
           script: |
             # 1. Navigasi ke folder root proyek
             cd /home/u7942055/public_html/dev.citrabuananusantara.com
-            echo "Deploying to: $(pwd)"
             
-            # 2. Paksa Bersihkan Kode Lama (Nuklir Mode)
+            # 2. INVESTIGASI: Cari siapa yang memicu ship_status
+            echo "--- INVESTIGASI: Mencari ship_status di seluruh folder server ---"
+            grep -r "ship_status" . | grep -v "vendor" | grep -v "storage" | head -n 20
+            
+            echo "--- INVESTIGASI: Membaca isi jalankan.php ---"
+            cat public/jalankan.php || echo "File jalankan.php tidak ditemukan di public/"
+            
+            # 3. Nuklir Mode (Bersihkan dan Tarik Ulang)
             git config --global --add safe.directory $(pwd)
-            echo "Membersihkan file untracked dan folder migrasi..."
             git clean -fd
             rm -rf database/migrations/*
             
-            echo "Menarik pembaruan dari branch staging..."
             git fetch origin staging
             git reset --hard origin/staging
-            
-            # Verifikasi isi file migrasi yang bermasalah (untuk log)
-            echo "Isi file migrasi shipment_pods di server:"
-            cat database/migrations/2026_05_04_155012_create_shipment_pods_table.php
-            
-            # 3. Buat file test verifikasi
-            echo "<?php echo 'Deployment Success - ' . date('Y-m-d H:i:s'); ?>" > public/test-deploy.php
             
             # 4. Hapus cache fisik
             rm -rf bootstrap/cache/*.php
