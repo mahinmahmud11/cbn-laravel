@@ -19,34 +19,28 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # 1. Identifikasi User dan Lokasi
-            echo "USER: $(id)"
-            echo "HOME: $HOME"
+            # 1. Navigasi ke folder root proyek
+            cd /home/u7942055/public_html/dev.citrabuananusantara.com
+            echo "Deploying to: $(pwd)"
             
-            # Gunakan path absolut berdasarkan screenshot File Manager
-            TARGET_PATH="/home/u7942055/public_html/dev.citrabuananusantara.com"
-            
-            if [ ! -d "$TARGET_PATH" ]; then
-                echo "Folder absolut tidak ditemukan! Mencari folder alternatif..."
-                TARGET_PATH=$(find $HOME -name "dev.citrabuananusantara.com" -type d | head -n 1)
-            fi
-            
-            cd "$TARGET_PATH"
-            echo "Current Directory: $(pwd)"
-            
-            # 2. Reset dan tarik kode terbaru
+            # 2. Paksa Bersihkan Kode Lama (Nuklir Mode)
             git config --global --add safe.directory $(pwd)
+            echo "Membersihkan file untracked dan folder migrasi..."
+            git clean -fd
+            rm -rf database/migrations/*
+            
+            echo "Menarik pembaruan dari branch staging..."
             git fetch origin staging
             git reset --hard origin/staging
             
-            # 3. BRUTE FORCE TEST FILES (Buat di semua kemungkinan pintu masuk)
-            TEST_CONTENT="<?php echo 'Deployment Success - ' . date('Y-m-d H:i:s') . ' - Path: ' . __FILE__; ?>"
+            # Verifikasi isi file migrasi yang bermasalah (untuk log)
+            echo "Isi file migrasi shipment_pods di server:"
+            cat database/migrations/2026_05_04_155012_create_shipment_pods_table.php
             
-            echo "$TEST_CONTENT" > public/test-deploy.php
-            echo "$TEST_CONTENT" > test-deploy.php
-            echo "$TEST_CONTENT" > ../test-deploy.php
+            # 3. Buat file test verifikasi
+            echo "<?php echo 'Deployment Success - ' . date('Y-m-d H:i:s'); ?>" > public/test-deploy.php
             
-            # 4. Hapus cache fisik secara agresif
+            # 4. Hapus cache fisik
             rm -rf bootstrap/cache/*.php
             rm -rf storage/framework/views/*.php
             
@@ -57,7 +51,7 @@ jobs:
             composer install --no-interaction --prefer-dist --optimize-autoloader
             php artisan optimize:clear
             
-            # 7. EKSEKUSI MIGRASI SECARA PAKSA
+            # 7. Jalankan Migrasi
             php artisan migrate --force
             
             echo "🎉 Deployment Selesai!"
