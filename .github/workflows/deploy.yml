@@ -19,17 +19,24 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
-            # Masuk ke direktori web staging di cPanel
-            cd /home/u7942055/dev.citrabuananusantara.com
+            # Masuk ke direktori yang benar sesuai File Manager cPanel
+            cd /home/u7942055/public_html/dev.citrabuananusantara.com
             
-            # Tarik kode terbaru dari GitHub (branch staging)
-            git pull origin staging
+            # Konfigurasi agar git mengizinkan direktori ini
+            git config --global --add safe.directory /home/u7942055/public_html/dev.citrabuananusantara.com
             
-            # Install/Update library PHP (Vendor)
+            # Cek jika folder masih kosong, lakukan inisialisasi awal
+            if [ ! -d ".git" ]; then
+              git init
+              git remote add origin git@github.com:mahinmahmud11/cbn-laravel.git
+              git fetch origin staging
+              git checkout -f staging
+            else
+              # Jika sudah ada git, cukup tarik kode terbaru
+              git pull origin staging
+            fi
+            
+            # Jalankan perintah standar Laravel
             composer install --no-interaction --prefer-dist --optimize-autoloader
-            
-            # Update Database
             php artisan migrate --force
-            
-            # Bersihkan cache Laravel
             php artisan optimize:clear
