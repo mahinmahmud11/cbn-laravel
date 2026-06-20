@@ -14,15 +14,16 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Services\PricingService;
 
 class ShipItemResource extends Resource
 {
     protected static ?string $model = ShipItem::class;
     protected static ?string $navigationLabel = 'Manajemen Resi';
     protected static ?string $navigationGroup = 'Operasional Logistik';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-truck';
 
     public static function getEloquentQuery(): Builder
     {
@@ -55,6 +56,22 @@ class ShipItemResource extends Resource
                                 '1' => 'Aktif',
                             ])
                             ->required(),
+                        Forms\Components\Select::make('origin_district_id')
+                            ->label('Asal (Kecamatan)')
+                            ->relationship('originDistrict', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(fn ($set, $get) => self::updatePrice($set, $get)),
+                        Forms\Components\Select::make('destination_district_id')
+                            ->label('Tujuan (Kecamatan)')
+                            ->relationship('destinationDistrict', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(fn ($set, $get) => self::updatePrice($set, $get)),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Detail Pengiriman')
@@ -73,7 +90,9 @@ class ShipItemResource extends Resource
                             ->label('Harga')
                             ->numeric()
                             ->prefix('IDR')
-                            ->required(),
+                            ->required()
+                            ->readOnly()
+                            ->helperText('Dihitung otomatis berdasarkan rute dan berat.'),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Dimensi & Berat')
@@ -85,11 +104,15 @@ class ShipItemResource extends Resource
                         Forms\Components\TextInput::make('kilogram')
                             ->label('Berat (Kg)')
                             ->numeric()
-                            ->required(),
+                            ->required()
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn ($set, $get) => self::updatePrice($set, $get)),
                         Forms\Components\TextInput::make('dimension')
                             ->label('Dimensi')
                             ->placeholder('P x L x T')
-                            ->maxLength(11),
+                            ->maxLength(11)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn ($set, $get) => self::updatePrice($set, $get)),
                     ])->columns(3),
             ]);
     }
@@ -140,12 +163,26 @@ class ShipItemResource extends Resource
                     ]),
             ])
             ->actions([
+                Tables\Actions\Action::make('print')
+                    ->label('Cetak Label')
+                    ->icon('heroicon-o-printer')
+                    ->color('info')
+                    ->url(fn (ShipItem $record): string => route('print.resi', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn () => auth()->user()->hasRole('super_admin')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('print_bulk')
+                        ->label('Cetak Label Massal')
+                        ->icon('heroicon-o-printer')
+                        ->color('info')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            $ids = $records->pluck('id')->implode(',');
+                            return redirect()->route('print.resi.bulk', ['ids' => $ids]);
+                        }),
                     Tables\Actions\DeleteBulkAction::make()
                         ->visible(fn () => auth()->user()->hasRole('super_admin')),
                 ]),
@@ -164,5 +201,43 @@ class ShipItemResource extends Resource
         return [
             'index' => Pages\ManageShipItems::route('/'),
         ];
+    }
+
+    /**
+     * Logika untuk memperbarui harga secara otomatis.
+     */
+    public static function updatePrice(callable $set, callable $get): void
+    {
+        $originId = $get('origin_district_id');
+        $destId = $get('destination_district_id');
+        $weight = (float) $get('kilogram');
+        $dimension = $get('dimension');
+
+        if (!$originId || !$destId || $weight <= 0) {
+            return;
+        }
+
+        // Parsing Dimensi (P x L x T)
+        $p = $l = $t = 0.0;
+        if ($dimension && preg_match('/(\d+)\s*[xX]\s*(\d+)\s*[xX]\s*(\d+)/', $dimension, $matches)) {
+            $p = (float) $matches[1];
+            $l = (float) $matches[2];
+            $t = (float) $matches[3];
+        }
+
+        // Hitung via Service
+        $rates = app(PricingService::class)->calculate(
+            (string) $originId,
+            (string) $destId,
+            $weight,
+            $p > 0 ? $p : null,
+            $l > 0 ? $l : null,
+            $t > 0 ? $t : null
+        );
+
+        if ($rates->isNotEmpty()) {
+            // Ambil harga dari layanan pertama (default reguler)
+            $set('price', $rates->first()['total_fee']);
+        }
     }
 }

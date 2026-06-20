@@ -44,7 +44,21 @@ class ShipStatusesRelationManager extends RelationManager
                     ->visibility('private')
                     ->required(fn (Forms\Get $get) => $get('status') === 'done')
                     ->helperText('Wajib diunggah jika status adalah Done / Delivered.')
-                    ->dehydrated(false),
+                    ->afterStateHydrated(function (Forms\Components\FileUpload $component, ?\App\Models\ShipStatus $record) {
+                        if ($record && $record->pod) {
+                            $component->state($record->pod->file_path);
+                        }
+                    }),
+                Forms\Components\TextInput::make('recipient_name')
+                    ->label('Nama Penerima')
+                    ->required(fn (Forms\Get $get) => $get('status') === 'done')
+                    ->maxLength(255)
+                    ->placeholder('Contoh: Bpk. Mahin (Ybs)')
+                    ->afterStateHydrated(function (Forms\Components\TextInput $component, ?\App\Models\ShipStatus $record) {
+                        if ($record && $record->pod) {
+                            $component->state($record->pod->recipient_name);
+                        }
+                    }),
             ]);
     }
 
@@ -67,15 +81,19 @@ class ShipStatusesRelationManager extends RelationManager
                     ->label('Keterangan Tracking')
                     ->wrap()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('pod.recipient_name')
+                    ->label('Diterima Oleh')
+                    ->placeholder('-'),
                 Tables\Columns\ImageColumn::make('pod.file_path')
                     ->label('Foto POD')
                     ->disk('local')
                     ->visibility('private')
                     ->circular()
-                    ->url(fn ($record) => $record->pod ? route('admin.pods.show', ['filename' => basename($record->pod->file_path)]) : null),
+                    ->url(fn ($record) => $record->pod ? route('admin.pods.show', ['filename' => basename($record->pod->file_path)]) : null)
+                    ->openUrlInNewTab(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Waktu Update')
-                    ->formatStateUsing(fn ($state) => $state ? \Illuminate\Support\Carbon::createFromTimestamp($state)->format('d/m/Y H:i') : '-')
+                    ->formatStateUsing(fn ($state) => $state ? \Illuminate\Support\Carbon::createFromTimestamp((int) $state)->format('d/m/Y H:i') : '-')
                     ->sortable(),
             ])
             ->filters([
@@ -90,14 +108,34 @@ class ShipStatusesRelationManager extends RelationManager
                     })
                     ->after(function (array $data, \App\Models\ShipStatus $record) {
                         if (isset($data['pod_file'])) {
-                            $record->pod()->create([
-                                'file_path' => $data['pod_file'],
-                            ]);
+                            $record->pod()->updateOrCreate(
+                                ['ship_status_id' => $record->id],
+                                [
+                                    'file_path' => $data['pod_file'],
+                                    'recipient_name' => $data['recipient_name'] ?? null,
+                                ]
+                            );
                         }
                     }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['updated_at'] = time();
+                        $data['user_update'] = auth()->id();
+                        return $data;
+                    })
+                    ->after(function (array $data, \App\Models\ShipStatus $record) {
+                        if (isset($data['pod_file'])) {
+                            $record->pod()->updateOrCreate(
+                                ['ship_status_id' => $record->id],
+                                [
+                                    'file_path' => $data['pod_file'],
+                                    'recipient_name' => $data['recipient_name'] ?? null,
+                                ]
+                            );
+                        }
+                    }),
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn () => auth()->user()->hasRole('super_admin')),
             ])

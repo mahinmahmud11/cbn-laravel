@@ -17,6 +17,7 @@ class ShipmentPod extends Model
     protected $fillable = [
         'ship_status_id',
         'file_path',
+        'recipient_name',
     ];
 
     /**

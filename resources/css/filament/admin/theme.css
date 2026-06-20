@@ -1,0 +1,49 @@
+/* Premium Logistics ERP Theme Fixes */
+
+/* Sidebar Enhancements */
+.fi-sidebar {
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    border-right: 1px solid rgba(0,0,0,0.05);
+}
+
+.dark .fi-sidebar {
+    background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Card Improvements */
+.fi-section, .fi-ta-ctn, .fi-wi-stats-overview-stat-ctn {
+    border-radius: 1.5rem !important;
+    border: 1px solid rgba(0,0,0,0.05) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dark .fi-section, .dark .fi-ta-ctn, .dark .fi-wi-stats-overview-stat-ctn {
+    background: rgba(30, 41, 59, 0.5) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Buttons */
+.fi-btn {
+    border-radius: 0.75rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.025em;
+}
+
+/* Logo Area Background (White box enhancement) */
+.fi-sidebar-header {
+    margin-bottom: 1rem;
+}
+
+/* Custom Navigation Item Style */
+.fi-sidebar-item-active {
+    background-color: rgba(255, 117, 15, 0.1) !important;
+}
+
+/* Modal and Overlays */
+.fi-modal-window {
+    border-radius: 2rem !important;
+}

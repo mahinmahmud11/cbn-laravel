@@ -67,3 +67,68 @@ Mentransformasi sistem ERP Logistik **Citra Buana Nusantara (CBN)** dari arsitek
 3.  **Phase 3 (Admin ERP):** Instalasi FilamentPHP dan setup RBAC Spatie.
 4.  **Phase 4 (Logistic Core):** Porting Pricing Engine dan fitur Track & Trace menggunakan Livewire.
 5.  **Phase 5 (Refine):** Refactoring, optimasi query N+1, dan security audit.
+
+---
+
+## 6. Advanced Logistics Modules (Roadmap)
+
+### 6.1 Sistem POD (Proof of Delivery) & Tracking Status
+*   **Status Workflow**: Implementasi alur status pengiriman (Transit, Arrived, Out for Delivery, Delivered).
+*   **Evidence Collection**: Fitur unggah foto bukti pengiriman (POD) dan tanda tangan digital penerima saat status menjadi 'Delivered'.
+*   **Security**: Foto disimpan di *private storage* dan hanya bisa diakses oleh user berwenang.
+
+### 6.2 Manifest & Konsolidasi (Grouping)
+*   **Manifest Creation**: Pengelompokan banyak resi ke dalam satu Nomor Manifest untuk pengiriman antar cabang/Hub.
+*   **Transit Monitoring**: Melacak pergerakan manifest besar secara kolektif untuk efisiensi operasional armada.
+
+### 6.3 Manajemen Pickup (Penjemputan)
+*   **Request Form**: Form permintaan jemput paket oleh pelanggan korporat atau individu.
+*   **Dispatcher Panel**: Penugasan kurir terdekat untuk melakukan penjemputan berdasarkan lokasi permintaan.
+
+### 6.4 Keuangan & Invoicing
+*   **Financial Reporting**: Laporan omzet real-time per agen dan sistem saldo/deposit agen.
+*   **Auto-Invoicing**: Pembuatan invoice otomatis untuk pelanggan korporat (B2B) dengan siklus penagihan mingguan/bulanan.
+
+### 6.5 Manajemen Armada & Driver
+*   **Fleet Database**: Pendataan kendaraan (Plat nomor, masa berlaku STNK/KIR, kapasitas angkut).
+*   **Driver Assignment**: Penugasan driver ke manifest atau rute pengiriman tertentu.
+
+### 6.6 Customer CRM (Address Book)
+*   **Frequent Customer DB**: Database pengirim dan penerima tetap untuk mempercepat proses input resi (Auto-complete data pelanggan).
+
+---
+
+## 7. Development Phases (Updated V2)
+1.  **Phase 1 (Infra):** Setup Docker (Sail), PHP 8.3, Laravel 11, dan konfigurasi `.env`.
+2.  **Phase 2 (Data Bridge):** Pembuatan Eloquent Models khusus untuk tabel utama legacy.
+3.  **Phase 3 (Core ERP):** Instalasi FilamentPHP, setup RBAC, dan fitur Cetak Resi (Thermal/Bulk).
+4.  **Phase 4 (Tracking & Scanning):** Implementasi Arsitektur Master-Detail Tracking dan integrasi pemindaian barcode.
+5.  **Phase 5 (Finance & Profit Sharing):** Otomatisasi bagi hasil agen dan pelaporan finansial.
+6.  **Phase 6 (Logistic Advanced):** Implementasi Sistem POD, Manajemen Manifest, dan Pickup Request.
+7.  **Phase 7 (Refine & Audit):** Refactoring, optimasi query N+1, dan security audit.
+
+---
+
+## 8. Arsitektur Tracking Logistik Terpadu & Bagi Hasil Agen
+
+### 8.1 Arsitektur Pelacakan Master-Detail
+*   **Entitas Utama (Shipments):** Tabel `shipments` berfungsi sebagai identitas unik ("KTP") untuk setiap resi. Data yang disimpan bersifat statis terkait pengiriman:
+    *   ID Resi / AWB Number.
+    *   Identitas Pengirim & Penerima.
+    *   Kota Asal & Tujuan.
+    *   Detail Paket (Berat, Dimensi, Isi).
+*   **Entitas Riwayat (Tracking Histories):** Tabel `tracking_histories` berfungsi sebagai "Buku Harian" paket. Setiap pergerakan atau perubahan status dicatat sebagai baris baru:
+    *   Timestamp kejadian.
+    *   Lokasi (Cabang/Agen/Hub).
+    *   Status Pengiriman (Contoh: *Manifested*, *Received at Warehouse*, *Out for Delivery*).
+    *   Person in Charge (PIC) / User yang melakukan pemindaian.
+
+### 8.2 Alur Pemindaian Barcode (Scanning Flow)
+*   Pemindaian barcode oleh agen di lapangan atau petugas gudang akan memicu pembuatan baris baru di `tracking_histories`.
+*   **Integritas Data:** Operasi ini tidak boleh mengubah atribut utama pada tabel `shipments` (kecuali status global terakhir jika diperlukan untuk sinkronisasi), guna menjaga integritas riwayat perjalanan paket.
+
+### 8.3 Otomatisasi Profit-Sharing (Bagi Hasil)
+*   Setiap pemicu perubahan status (misalnya paket masuk ke agen tertentu) akan divalidasi.
+*   Sistem secara otomatis menghitung nilai komisi agen berdasarkan aturan bisnis yang berlaku.
+*   Data komisi disimpan ke dalam tabel finansial khusus, misalnya `agent_commissions`.
+*   **Keamanan Transaksi:** Perhitungan dan pencatatan komisi wajib dibungkus dalam `DB::transaction` untuk menjamin konsistensi data finansial.

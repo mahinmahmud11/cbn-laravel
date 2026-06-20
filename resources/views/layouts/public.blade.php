@@ -39,6 +39,7 @@
             background: linear-gradient(135deg, #003366 0%, #001a33 100%);
         }
     </style>
+    @livewireStyles
 </head>
 <body class="bg-gray-50 text-gray-900 overflow-x-hidden">
 
@@ -165,5 +166,6 @@
             menu.classList.toggle('hidden');
         });
     </script>
+    @livewireScripts
 </body>
 </html>

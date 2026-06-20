@@ -50,6 +50,7 @@ class User extends Authenticatable implements FilamentUser
         'signature',
         'roleid',
         'store_area',
+        'remember_token',
     ];
 
     /**

@@ -19,7 +19,7 @@ class UserResource extends Resource
 
     protected static ?string $navigationLabel = 'Manajemen User';
     protected static ?string $navigationGroup = 'Sistem & Keamanan';
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
     public static function canViewAny(): bool
     {
@@ -40,6 +40,11 @@ class UserResource extends Resource
                             ->email()
                             ->required()
                             ->maxLength(255),
+                        Forms\Components\TextInput::make('nip')
+                            ->label('NIP')
+                            ->maxLength(50)
+                            ->nullable()
+                            ->helperText('Kosongkan untuk agen/mitra luar.'),
                         Forms\Components\TextInput::make('username')
                             ->required()
                             ->maxLength(255),
@@ -52,11 +57,11 @@ class UserResource extends Resource
 
                 Forms\Components\Section::make('Akses & Afiliasi')
                     ->schema([
-                        Forms\Components\Select::make('roles')
+                        Forms\Components\CheckboxList::make('roles')
                             ->label('Role Akses')
-                            ->multiple()
                             ->relationship('roles', 'name')
-                            ->preload(),
+                            ->columns(2)
+                            ->gridDirection('column'),
                         Forms\Components\Select::make('store_area')
                             ->label('Afiliasi Agen')
                             ->relationship('agency', 'agency_name')

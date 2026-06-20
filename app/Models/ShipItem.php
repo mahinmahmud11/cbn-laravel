@@ -40,6 +40,8 @@ class ShipItem extends Model
         'categories',
         'fragile',
         'notes',
+        'origin_district_id',
+        'destination_district_id',
         'status',
         'created_at',
         'user_entry',
@@ -83,5 +85,15 @@ class ShipItem extends Model
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'user_entry', 'id');
+    }
+
+    public function originDistrict(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(District::class, 'origin_district_id', 'id');
+    }
+
+    public function destinationDistrict(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(District::class, 'destination_district_id', 'id');
     }
 }

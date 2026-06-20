@@ -9,9 +9,11 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Navigation\NavigationItem;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
@@ -26,10 +28,27 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(\App\Filament\Pages\Auth\CustomLogin::class)
             ->colors([
-                'primary' => Color::Amber,
+            'primary' => '#FF750F',
+                'gray' => Color::Slate,
             ])
+            ->font('Plus Jakarta Sans')
+            ->brandName('CBN Logistics ERP')
+            ->brandLogo(fn () => view('filament.components.brand-logo'))
+            ->favicon(asset('images/logo.png'))
+            ->sidebarCollapsibleOnDesktop()
+            ->breadcrumbs(true)
+            ->navigationItems([
+                NavigationItem::make('Kembali ke Beranda')
+                    ->url('/')
+                    ->icon('heroicon-o-arrow-left-circle')
+                    ->sort(-1),
+            ])
+            ->renderHook(
+                'panels::head.end',
+                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament/admin/theme.css\') }}">'),
+            )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -39,6 +58,9 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 \App\Filament\Widgets\StatsOverview::class,
+                \App\Filament\Widgets\MonthlyRevenue::class,
+                \App\Filament\Widgets\ShipmentTrends::class,
+                \App\Filament\Widgets\RecentShipments::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -50,6 +72,9 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+            ])
+            ->plugins([
+                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
             ])
             ->authMiddleware([
                 Authenticate::class,
