@@ -4,9 +4,41 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
 Route::get('/force-update-db-99', function () {
-    Artisan::call('migrate:install'); // Pastikan tabel migrasi ada
-    Artisan::call('migrate', ['--force' => true]);
-    return "Database updated: " . Artisan::output();
+    \Illuminate\Support\Facades\Artisan::call('migrate:install'); // Pastikan tabel migrasi ada
+    
+    $output = "<h3>Proses Sinkronisasi Database (Smart Migrate)</h3><ul>";
+    $files = glob(database_path('migrations/*.php'));
+    $batch = \Illuminate\Support\Facades\DB::table('migrations')->max('batch') + 1;
+
+    foreach ($files as $file) {
+        $migration = basename($file, '.php');
+        $exists = \Illuminate\Support\Facades\DB::table('migrations')->where('migration', $migration)->exists();
+        
+        if (!$exists) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate', [
+                    '--path' => 'database/migrations/' . basename($file), 
+                    '--force' => true
+                ]);
+                $output .= "<li>✅ Berhasil migrate: <b>$migration</b></li>";
+            } catch (\Exception $e) {
+                $msg = $e->getMessage();
+                // Jika error karena tabel atau kolom sudah ada, anggap saja sudah pernah di-run
+                if (str_contains($msg, 'already exists') || str_contains($msg, 'Duplicate column name') || str_contains($msg, 'Duplicate key name')) {
+                    \Illuminate\Support\Facades\DB::table('migrations')->insert([
+                        'migration' => $migration,
+                        'batch' => $batch
+                    ]);
+                    $output .= "<li>⚠️ Dilewati (Sudah ada di DB), ditandai selesai: <b>$migration</b></li>";
+                } else {
+                    $output .= "<li>❌ Gagal pada <b>$migration</b>: " . $msg . "</li>";
+                    break; // Hentikan jika error lain yang berbahaya
+                }
+            }
+        }
+    }
+    $output .= "</ul><p><b>Selesai!</b> Silakan kembali ke web admin.</p>";
+    return $output;
 });
 
 Route::get('/', function () {
