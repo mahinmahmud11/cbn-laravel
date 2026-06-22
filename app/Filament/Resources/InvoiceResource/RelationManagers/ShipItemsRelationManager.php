@@ -45,10 +45,7 @@ class ShipItemsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\AttachAction::make()
-                    ->preloadRecordSelect()
-                    ->multiple()
-                    ->after(fn ($livewire) => $this->updateInvoiceTotal($livewire->getOwner())),
+                // Disable attach action for legacy ship items
             ])
             ->actions([
                 Tables\Actions\DetachAction::make()
@@ -64,7 +61,8 @@ class ShipItemsRelationManager extends RelationManager
 
     protected function updateInvoiceTotal($invoice): void
     {
-        $total = $invoice->shipItems()->sum('price');
-        $invoice->update(['total_amount' => $total]);
+        $totalShipItems = $invoice->shipItems()->sum('price');
+        $totalShipments = $invoice->shipments()->sum('price');
+        $invoice->update(['total_amount' => $totalShipItems + $totalShipments]);
     }
 }

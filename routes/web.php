@@ -13,15 +13,19 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/track', function () {
-    return view('track-page');
-})->name('public.track');
+Route::middleware('throttle:30,1')->group(function () {
+    Route::get('/track', function () {
+        return view('track-page');
+    })->name('public.track');
+});
 
 Route::get('/cek-tarif', function () {
     return view('tarif');
 })->name('public.tarif');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/print/resi/new/bulk', [App\Http\Controllers\PrintController::class, 'resiThermalBulkNew'])->name('print.resi.bulk.new');
+    Route::get('/print/resi/new/{record}', [App\Http\Controllers\PrintController::class, 'resiThermalNew'])->name('print.resi.new');
     Route::get('/print/invoice/{record}', [App\Http\Controllers\PrintController::class, 'invoice'])->name('print.invoice');
     Route::get('/print/manifest/{record}', [App\Http\Controllers\PrintController::class, 'manifest'])->name('print.manifest');
     Route::get('/print/resi/bulk', [App\Http\Controllers\PrintController::class, 'resiThermalBulk'])->name('print.resi.bulk');

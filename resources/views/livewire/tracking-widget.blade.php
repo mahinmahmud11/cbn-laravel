@@ -65,17 +65,17 @@
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 mb-2 uppercase tracking-wider border border-indigo-100">
                             Nomor Resi Resmi
                         </span>
-                        <h3 class="text-3xl font-black text-gray-900 uppercase tracking-tight">{{ $result->awb }}</h3>
+                        <h3 class="text-3xl font-black text-gray-900 uppercase tracking-tight">{{ $result->tracking_number }}</h3>
                     </div>
                     <div class="flex items-center gap-4 bg-gray-50 px-6 py-4 rounded-2xl border border-gray-100">
                         <div class="text-right">
                             <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Status Terakhir</p>
-                            <p class="text-lg font-black {{ $result->shipStatuses->first()?->status == 'done' ? 'text-green-600' : 'text-orange-500' }} uppercase">
-                                {{ $result->shipStatuses->first()?->status ?? 'Menunggu' }}
+                            <p class="text-lg font-black {{ \App\Enums\ShipmentStatusGroup::classify($result->histories->first()?->status) === \App\Enums\ShipmentStatusGroup::Delivered ? 'text-green-600' : 'text-orange-500' }} uppercase">
+                                {{ $result->histories->first()?->status ?? 'Menunggu' }}
                             </p>
                         </div>
-                        <div class="w-12 h-12 rounded-xl {{ $result->shipStatuses->first()?->status == 'done' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-500' }} flex items-center justify-center shadow-inner">
-                            @if($result->shipStatuses->first()?->status == 'done')
+                        <div class="w-12 h-12 rounded-xl {{ \App\Enums\ShipmentStatusGroup::classify($result->histories->first()?->status) === \App\Enums\ShipmentStatusGroup::Delivered ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-500' }} flex items-center justify-center shadow-inner">
+                            @if(\App\Enums\ShipmentStatusGroup::classify($result->histories->first()?->status) === \App\Enums\ShipmentStatusGroup::Delivered)
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                             @else
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -88,7 +88,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                     <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 hover:border-indigo-200 transition-colors">
                         <p class="text-xs font-bold text-gray-400 uppercase mb-3 tracking-widest">Pengirim</p>
-                        <p class="text-lg font-extrabold text-gray-800">{{ $this->maskName($result->sender_name) }}</p>
+                        <p class="text-lg font-extrabold text-gray-800">{{ $this->maskName($result->customer_name) }}</p>
                         <p class="text-xs text-gray-500 mt-1">Verified Sender</p>
                     </div>
                     <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 hover:border-indigo-200 transition-colors">
@@ -123,7 +123,7 @@
                     </h4>
 
                     <div class="space-y-0">
-                        @forelse($result->shipStatuses as $status)
+                        @forelse($result->histories as $status)
                             <div class="relative pl-12 pb-10 group">
                                 <!-- Vertical Line -->
                                 @if(!$loop->last)
@@ -133,9 +133,9 @@
                                 <!-- Icon/Dot -->
                                 <div class="absolute left-0 top-0 w-10 h-10 rounded-2xl border-4 border-white shadow-md flex items-center justify-center transition-all duration-300 group-hover:scale-110 z-10 
                                     {{ $loop->first ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white text-gray-400' }}">
-                                    @if($status->status == 'done')
+                                    @if(\App\Enums\ShipmentStatusGroup::classify($status->status) === \App\Enums\ShipmentStatusGroup::Delivered)
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                    @elseif($status->status == 'progress')
+                                    @elseif(\App\Enums\ShipmentStatusGroup::classify($status->status) === \App\Enums\ShipmentStatusGroup::InTransit)
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                     @elseif($status->status == 'return')
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-6a4 4 0 00-4-4H4.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 1.414L4.414 5H12a6 6 0 016 6v6h-2z" /></svg>
@@ -147,15 +147,15 @@
                                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-50 group-hover:shadow-md group-hover:border-indigo-100 transition-all">
                                     <div class="flex flex-col sm:flex-row justify-between mb-2 gap-2">
                                         <span class="text-sm font-black text-indigo-600 uppercase tracking-wider">
-                                            {{ $status->status }}
+                                            {{ str_replace('_', ' ', $status->status) }}
                                         </span>
                                         <span class="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md">
-                                            {{ \Illuminate\Support\Carbon::createFromTimestamp($status->created_at)->format('d M Y | H:i') }}
+                                            {{ $status->date->format('d M Y | H:i') }}
                                         </span>
                                     </div>
-                                    <p class="text-gray-800 font-bold text-lg mb-1">{{ $status->track }}</p>
-                                    @if(isset($status->notes))
-                                        <p class="text-gray-500 text-sm leading-relaxed">{{ $status->notes }}</p>
+                                    <p class="text-gray-800 font-bold text-lg mb-1">{{ $status->location }}</p>
+                                    @if($status->description)
+                                        <p class="text-gray-500 text-sm leading-relaxed">{{ $status->description }}</p>
                                     @endif
                                 </div>
                             </div>

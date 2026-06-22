@@ -54,11 +54,27 @@
                     </div>
                 </div>
 
+                <!-- Package Details -->
+                <div class="grid md:grid-cols-3 gap-4 mb-12">
+                    <div class="flex justify-between items-center p-4 bg-orange-50 rounded-xl border border-orange-100">
+                        <span class="text-gray-600">Berat</span>
+                        <span class="font-bold text-gray-900">{{ $shipment->kilogram }} kg</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-orange-50 rounded-xl border border-orange-100">
+                        <span class="text-gray-600">Jumlah/Koli</span>
+                        <span class="font-bold text-gray-900">{{ $shipment->pieces }} koli</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-orange-50 rounded-xl border border-orange-100">
+                        <span class="text-gray-600">Layanan</span>
+                        <span class="font-bold text-gray-900 uppercase">{{ $shipment->package_type }}</span>
+                    </div>
+                </div>
+
                 <!-- Timeline -->
                 <div class="relative">
                     <h3 class="text-xl font-bold text-gray-900 mb-8 border-l-4 border-orange-500 pl-4">Riwayat Perjalanan</h3>
                     <div class="space-y-8">
-                        @foreach($shipment->trackingHistories as $history)
+                        @foreach($shipment->histories as $history)
                             <div class="relative pl-8">
                                 <!-- Dot -->
                                 <div class="absolute left-0 top-1.5 w-4 h-4 bg-orange-500 rounded-full border-4 border-white shadow-sm z-10"></div>
@@ -69,7 +85,7 @@
                                 
                                 <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:border-orange-200 transition-colors shadow-sm">
                                     <div class="flex flex-col md:flex-row justify-between mb-2">
-                                        <span class="text-sm font-bold text-orange-600">{{ $history->created_at->format('d M Y, H:i') }} WIB</span>
+                                        <span class="text-sm font-bold text-orange-600">{{ $history->date->format('d M Y, H:i') }} WIB</span>
                                         <span class="text-sm font-medium text-gray-500 uppercase tracking-wider">{{ $history->status }}</span>
                                     </div>
                                     <p class="text-gray-900 font-bold mb-1">{{ $history->location }}</p>

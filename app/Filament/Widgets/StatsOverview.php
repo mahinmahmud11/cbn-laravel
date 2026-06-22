@@ -24,8 +24,9 @@ class StatsOverview extends BaseWidget
         $isSuperAdmin = $user->hasRole('super_admin');
 
         if ($isSuperAdmin) {
+            $totalSemuaResi = ShipItem::count() + \App\Models\Shipment::count();
             return [
-                Stat::make('Total Semua Resi', ShipItem::count())
+                Stat::make('Total Semua Resi', $totalSemuaResi)
                     ->description('Total paket terdaftar di sistem')
                     ->descriptionIcon('heroicon-m-cube')
                     ->chart([7, 2, 10, 3, 15, 4, 17])
@@ -47,10 +48,11 @@ class StatsOverview extends BaseWidget
 
         // Stats for Agency
         $agencyId = (int) $user->store_area;
-        $agencyShipmentsQuery = ShipItem::whereHas('user', fn ($q) => $q->where('store_area', $agencyId));
+        $legacyCount = ShipItem::whereHas('user', fn ($q) => $q->where('store_area', $agencyId))->count();
+        $newCount    = \App\Models\Shipment::whereHas('creator', fn ($q) => $q->where('store_area', $agencyId))->count();
 
         return [
-            Stat::make('Total Resi Saya', (clone $agencyShipmentsQuery)->count())
+            Stat::make('Total Resi Saya', $legacyCount + $newCount)
                 ->description('Total paket yang diinput agen Anda')
                 ->descriptionIcon('heroicon-m-cube')
                 ->chart([3, 1, 5, 2, 8, 3, 10])
@@ -75,21 +77,24 @@ class StatsOverview extends BaseWidget
      */
     private function countDelivered(?int $agencyId = null): int
     {
-        $query = ShipItem::whereHas('shipStatuses', function ($q) {
+        $legacyQuery = ShipItem::whereHas('shipStatuses', function ($q) {
             $q->where('id', function ($sub) {
                 $sub->select('id')
                     ->from('ship_status')
                     ->whereColumn('item_id', 'ship_items.id')
                     ->latest()
                     ->limit(1);
-            })->where('status', 'done');
+            })->whereIn('status', \App\Enums\ShipmentStatusGroup::deliveredRawStatuses());
         });
 
+        $newQuery = \App\Models\Shipment::whereIn('current_status', \App\Enums\ShipmentStatusGroup::deliveredRawStatuses());
+
         if ($agencyId) {
-            $query->whereHas('user', fn ($q) => $q->where('store_area', $agencyId));
+            $legacyQuery->whereHas('user', fn ($q) => $q->where('store_area', $agencyId));
+            $newQuery->whereHas('creator', fn ($q) => $q->where('store_area', $agencyId));
         }
 
-        return $query->count();
+        return $legacyQuery->count() + $newQuery->count();
     }
 
     /**
@@ -97,7 +102,7 @@ class StatsOverview extends BaseWidget
      */
     private function countInTransit(int $agencyId): int
     {
-        return ShipItem::whereHas('user', fn ($q) => $q->where('store_area', $agencyId))
+        $legacyCount = ShipItem::whereHas('user', fn ($q) => $q->where('store_area', $agencyId))
             ->whereHas('shipStatuses', function ($q) {
                 $q->where('id', function ($sub) {
                     $sub->select('id')
@@ -105,8 +110,14 @@ class StatsOverview extends BaseWidget
                         ->whereColumn('item_id', 'ship_items.id')
                         ->latest()
                         ->limit(1);
-                })->whereIn('status', ['waiting', 'progress']);
+                })->whereIn('status', \App\Enums\ShipmentStatusGroup::inTransitRawStatuses());
             })
             ->count();
+
+        $newCount = \App\Models\Shipment::whereHas('creator', fn ($q) => $q->where('store_area', $agencyId))
+            ->whereIn('current_status', \App\Enums\ShipmentStatusGroup::inTransitRawStatuses())
+            ->count();
+
+        return $legacyCount + $newCount;
     }
 }

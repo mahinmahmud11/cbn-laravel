@@ -22,6 +22,11 @@ class Manifest extends Model
         return $this->belongsToMany(ShipItem::class, 'manifest_items', 'manifest_id', 'ship_item_id')->withTimestamps();
     }
 
+    public function shipments(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Shipment::class, 'manifest_items', 'manifest_id', 'shipment_id')->withTimestamps();
+    }
+
     public function originAgency(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Agency::class, 'origin_agency_id');

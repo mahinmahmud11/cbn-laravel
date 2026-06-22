@@ -17,7 +17,16 @@ class TrackingHistoryResource extends Resource
 {
     protected static ?string $model = TrackingHistory::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-list-bullet';
+    protected static ?string $navigationLabel  = 'Lacak Pengiriman';
+    protected static ?string $modelLabel       = 'Riwayat Status';
+    protected static ?string $pluralModelLabel = 'Riwayat Status';
+    protected static ?string $navigationIcon   = 'heroicon-o-map-pin';
+    protected static ?string $navigationGroup  = 'Transaksi';
+    protected static ?int    $navigationSort   = 4;
+
+    public static function getModelLabel(): string       { return 'Riwayat Status'; }
+    public static function getPluralModelLabel(): string  { return 'Riwayat Status'; }
+    public static function getNavigationLabel(): string   { return 'Lacak Pengiriman'; }
 
     public static function form(Form $form): Form
     {
@@ -47,18 +56,23 @@ class TrackingHistoryResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('shipment.tracking_number')
-                    ->label('Tracking Number')
+                    ->label('No. AWB')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->copyable(),
                 Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('location')
+                    ->label('Lokasi')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('updater.name')
-                    ->label('Updated By')
+                    ->label('Diperbarui Oleh')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Waktu')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])
             ->filters([

@@ -45,7 +45,7 @@
             <div class="meta-text">
                 <strong>No:</strong> {{ $invoice->invoice_number }}<br>
                 <strong>Tanggal:</strong> {{ $invoice->created_at->format('d M Y') }}<br>
-                <strong>Jatuh Tempo:</strong> {{ \Illuminate\Support\Carbon::parse($invoice->due_date)->format('d M Y') }}
+                <strong>Jatuh Tempo:</strong> {{ $invoice->due_date ? \Illuminate\Support\Carbon::parse($invoice->due_date)->format('d M Y') : '-' }}
             </div>
         </div>
     </div>
@@ -53,13 +53,23 @@
     <div class="header-grid">
         <div>
             <div class="section-title">Ditagihkan Kepada:</div>
-            <strong>{{ $invoice->customer_name }}</strong><br>
-            {!! nl2br(e($invoice->customer_address)) !!}
+            <strong>{{ $invoice->company ? $invoice->company->name : $invoice->customer_name }}</strong><br>
+            {!! nl2br(e($invoice->company ? $invoice->company->billing_address : $invoice->customer_address)) !!}
+            @if($invoice->company && $invoice->company->npwp)
+                <br><span style="font-size: 9pt; color: #666;">NPWP: {{ $invoice->company->npwp }}</span>
+            @endif
         </div>
         <div style="text-align: right;">
             <div class="section-title">Status:</div>
-            <span style="font-size: 14pt; font-weight: bold; color: {{ $invoice->status === 'paid' ? '#28a745' : '#ffc107' }}">
-                {{ strtoupper($invoice->status === 'paid' ? 'LUNAS' : 'MENUNGGU PEMBAYARAN') }}
+            <span style="font-size: 14pt; font-weight: bold; color: {{ match($invoice->billing_status) {
+                'lunas' => '#28a745',
+                'sebagian_dibayar' => '#17a2b8',
+                'sudah_ditagih' => '#ffc107',
+                'dibatalkan' => '#dc3545',
+                'belum_ditagih' => '#6c757d',
+                default => '#6c757d',
+            } }}">
+                {{ strtoupper(str_replace('_', ' ', $invoice->billing_status)) }}
             </span>
         </div>
     </div>
@@ -75,13 +85,23 @@
             </tr>
         </thead>
         <tbody>
+            @php $rowNumber = 1; @endphp
             @foreach($invoice->shipItems as $item)
             <tr>
-                <td>{{ $loop->iteration }}</td>
+                <td>{{ $rowNumber++ }}</td>
                 <td>{{ \Illuminate\Support\Carbon::createFromTimestamp($item->created_at)->format('d/m/y') }}</td>
                 <td>{{ $item->awb }}</td>
                 <td>{{ $item->package_type }} ({{ $item->sender_name }} &raquo; {{ $item->recipient_name }})</td>
                 <td style="text-align: right;">{{ number_format($item->price, 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+            @foreach($invoice->shipments as $shipment)
+            <tr>
+                <td>{{ $rowNumber++ }}</td>
+                <td>{{ $shipment->created_at->format('d/m/y') }}</td>
+                <td>{{ $shipment->tracking_number }}</td>
+                <td>{{ $shipment->package_type }} ({{ $shipment->sender_name }} &raquo; {{ $shipment->recipient_name }})</td>
+                <td style="text-align: right;">{{ number_format($shipment->price, 0, ',', '.') }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -90,6 +110,16 @@
                 <td colspan="4" style="text-align: right;">TOTAL TAGIHAN:</td>
                 <td style="text-align: right;">IDR {{ number_format($invoice->total_amount, 0, ',', '.') }}</td>
             </tr>
+            @if($invoice->paid_amount > 0)
+            <tr>
+                <td colspan="4" style="text-align: right; color: #28a745;">SUDAH DIBAYAR:</td>
+                <td style="text-align: right; color: #28a745;">IDR {{ number_format($invoice->paid_amount, 0, ',', '.') }}</td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="4" style="text-align: right;">SISA TAGIHAN:</td>
+                <td style="text-align: right;">IDR {{ number_format($invoice->total_amount - $invoice->paid_amount, 0, ',', '.') }}</td>
+            </tr>
+            @endif
         </tfoot>
     </table>
 

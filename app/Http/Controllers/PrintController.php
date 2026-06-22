@@ -49,4 +49,31 @@ class PrintController extends Controller
             'invoice' => $record->load(['shipItems']),
         ]);
     }
+
+    /**
+     * Tampilkan halaman cetak resi termal untuk Shipment (baru).
+     */
+    public function resiThermalNew(\App\Models\Shipment $record)
+    {
+        abort_unless(auth()->check(), 403);
+
+        return view('print.resi-new-thermal', [
+            'items' => [$record],
+        ]);
+    }
+
+    /**
+     * Tampilkan cetak resi termal massal untuk Shipment (baru).
+     */
+    public function resiThermalBulkNew(Request $request)
+    {
+        abort_unless(auth()->check(), 403);
+
+        $ids = explode(',', $request->query('ids', ''));
+        $items = \App\Models\Shipment::whereIn('id', $ids)->get();
+
+        return view('print.resi-new-thermal', [
+            'items' => $items,
+        ]);
+    }
 }

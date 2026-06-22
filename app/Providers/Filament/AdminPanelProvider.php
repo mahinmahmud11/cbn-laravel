@@ -73,6 +73,12 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->navigationGroups([
+                'Transaksi',
+                'Keuangan & Komisi',
+                'Data Master',
+                'Sistem & Keamanan',
+            ])
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
             ])

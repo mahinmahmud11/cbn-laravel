@@ -17,9 +17,16 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationLabel = 'Manajemen User';
-    protected static ?string $navigationGroup = 'Sistem & Keamanan';
-    protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static ?string $navigationLabel  = 'Manajemen User';
+    protected static ?string $modelLabel       = 'User';
+    protected static ?string $pluralModelLabel = 'Daftar User';
+    protected static ?string $navigationGroup  = 'Sistem & Keamanan';
+    protected static ?int    $navigationSort   = 2;
+    protected static ?string $navigationIcon   = 'heroicon-o-user-group';
+
+    public static function getModelLabel(): string       { return 'User'; }
+    public static function getPluralModelLabel(): string  { return 'Daftar User'; }
+    public static function getNavigationLabel(): string   { return 'Manajemen User'; }
 
     public static function canViewAny(): bool
     {

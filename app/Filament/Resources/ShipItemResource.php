@@ -19,11 +19,28 @@ use App\Services\PricingService;
 class ShipItemResource extends Resource
 {
     protected static ?string $model = ShipItem::class;
-    protected static ?string $navigationLabel = 'Manajemen Resi';
-    protected static ?string $navigationGroup = 'Operasional Logistik';
-    protected static ?int $navigationSort = 2;
+    
+    protected static ?string $modelLabel = 'Arsip Resi';
+    protected static ?string $pluralModelLabel = 'Daftar Arsip Resi';
+    protected static ?string $navigationGroup = 'Transaksi';
+    protected static ?int $navigationSort = 10;
+    protected static bool $shouldRegisterNavigation = true;
+    protected static ?string $navigationIcon = 'heroicon-o-archive-box';
 
-    protected static ?string $navigationIcon = 'heroicon-o-truck';
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return false;
+    }
 
     public static function getEloquentQuery(): Builder
     {
@@ -169,9 +186,6 @@ class ShipItemResource extends Resource
                     ->color('info')
                     ->url(fn (ShipItem $record): string => route('print.resi', $record))
                     ->openUrlInNewTab(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
-                    ->visible(fn () => auth()->user()->hasRole('super_admin')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -183,8 +197,6 @@ class ShipItemResource extends Resource
                             $ids = $records->pluck('id')->implode(',');
                             return redirect()->route('print.resi.bulk', ['ids' => $ids]);
                         }),
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn () => auth()->user()->hasRole('super_admin')),
                 ]),
             ]);
     }

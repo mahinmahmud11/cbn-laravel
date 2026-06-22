@@ -15,11 +15,17 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ManifestResource extends Resource
 {
-    protected static ?string $model = Manifest::class;
-    protected static ?string $navigationLabel = 'Manajemen Manifest';
-    protected static ?string $navigationGroup = 'Operasional Logistik';
-    protected static ?int $navigationSort = 3;
-    protected static ?string $navigationIcon = 'heroicon-o-document-duplicate';
+    protected static ?string $model           = Manifest::class;
+    protected static ?string $navigationLabel  = 'Manajemen Manifest';
+    protected static ?string $modelLabel       = 'Manifes';
+    protected static ?string $pluralModelLabel = 'Daftar Manifes';
+    protected static ?string $navigationGroup  = 'Transaksi';
+    protected static ?int    $navigationSort   = 5;
+    protected static ?string $navigationIcon   = 'heroicon-o-document-duplicate';
+
+    public static function getModelLabel(): string       { return 'Manifes'; }
+    public static function getPluralModelLabel(): string  { return 'Daftar Manifes'; }
+    public static function getNavigationLabel(): string   { return 'Manajemen Manifest'; }
 
     public static function form(Form $form): Form
     {
@@ -107,9 +113,9 @@ class ManifestResource extends Resource
                 Tables\Columns\TextColumn::make('driver_name')
                     ->label('Driver')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('ship_items_count')
+                Tables\Columns\TextColumn::make('total_resi')
                     ->label('Jumlah Resi')
-                    ->counts('shipItems'),
+                    ->state(fn ($record) => $record->shipItems()->count() + $record->shipments()->count()),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')
                     ->dateTime()
@@ -144,6 +150,7 @@ class ManifestResource extends Resource
     public static function getRelations(): array
     {
         return [
+            RelationManagers\ShipmentsRelationManager::class,
             RelationManagers\ShipItemsRelationManager::class,
         ];
     }

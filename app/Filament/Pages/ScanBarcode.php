@@ -23,6 +23,10 @@ class ScanBarcode extends Page
 
     protected static ?string $navigationLabel = 'Scan Barcode';
 
+    protected static ?string $navigationGroup = 'Transaksi';
+
+    protected static ?int $navigationSort = 1;
+
     protected static ?string $title = 'Scan Barcode Paket';
 
     public ?string $tracking_number = '';

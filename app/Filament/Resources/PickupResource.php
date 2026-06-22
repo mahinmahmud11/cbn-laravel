@@ -15,11 +15,17 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PickupResource extends Resource
 {
-    protected static ?string $model = Pickup::class;
-    protected static ?string $navigationLabel = 'Request Penjemputan';
-    protected static ?string $navigationGroup = 'Operasional Logistik';
-    protected static ?int $navigationSort = 2;
-    protected static ?string $navigationIcon = 'heroicon-o-truck';
+    protected static ?string $model           = Pickup::class;
+    protected static ?string $navigationLabel  = 'Request Penjemputan';
+    protected static ?string $modelLabel       = 'Penjemputan';
+    protected static ?string $pluralModelLabel = 'Daftar Penjemputan';
+    protected static ?string $navigationGroup  = 'Transaksi';
+    protected static ?int    $navigationSort   = 6;
+    protected static ?string $navigationIcon   = 'heroicon-o-truck';
+
+    public static function getModelLabel(): string       { return 'Penjemputan'; }
+    public static function getPluralModelLabel(): string  { return 'Daftar Penjemputan'; }
+    public static function getNavigationLabel(): string   { return 'Request Penjemputan'; }
 
     public static function form(Form $form): Form
     {

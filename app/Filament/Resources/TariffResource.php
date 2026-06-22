@@ -17,9 +17,16 @@ class TariffResource extends Resource
 {
     protected static ?string $model = Tariff::class;
 
-    protected static ?string $navigationLabel = 'Manajemen Tarif';
-    protected static ?string $navigationGroup = 'Sistem & Keamanan';
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static ?string $navigationLabel  = 'Manajemen Tarif';
+    protected static ?string $modelLabel       = 'Tarif';
+    protected static ?string $pluralModelLabel = 'Daftar Tarif';
+    protected static ?string $navigationGroup  = 'Keuangan & Komisi';
+    protected static ?int    $navigationSort   = 3;
+    protected static ?string $navigationIcon   = 'heroicon-o-banknotes';
+
+    public static function getModelLabel(): string       { return 'Tarif'; }
+    public static function getPluralModelLabel(): string  { return 'Daftar Tarif'; }
+    public static function getNavigationLabel(): string   { return 'Manajemen Tarif'; }
 
     public static function form(Form $form): Form
     {

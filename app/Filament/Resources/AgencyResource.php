@@ -16,11 +16,17 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class AgencyResource extends Resource
 {
     protected static ?string $model = Agency::class;
-    protected static ?string $navigationLabel = 'Manajemen Agen';
-    protected static ?string $navigationGroup = 'Operasional Logistik';
-    protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
+    protected static ?string $navigationLabel  = 'Manajemen Agen';
+    protected static ?string $modelLabel       = 'Agen';
+    protected static ?string $pluralModelLabel = 'Daftar Agen';
+    protected static ?string $navigationGroup  = 'Data Master';
+    protected static ?int    $navigationSort   = 1;
+    protected static ?string $navigationIcon   = 'heroicon-o-building-storefront';
+
+    public static function getModelLabel(): string       { return 'Agen'; }
+    public static function getPluralModelLabel(): string  { return 'Daftar Agen'; }
+    public static function getNavigationLabel(): string   { return 'Manajemen Agen'; }
 
     public static function canViewAny(): bool
     {

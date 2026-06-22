@@ -17,7 +17,16 @@ class AgentCommissionResource extends Resource
 {
     protected static ?string $model = AgentCommission::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static ?string $navigationLabel  = 'Komisi Agen';
+    protected static ?string $modelLabel       = 'Komisi';
+    protected static ?string $pluralModelLabel = 'Daftar Komisi';
+    protected static ?string $navigationGroup  = 'Keuangan & Komisi';
+    protected static ?int    $navigationSort   = 1;
+    protected static ?string $navigationIcon   = 'heroicon-o-banknotes';
+
+    public static function getModelLabel(): string       { return 'Komisi'; }
+    public static function getPluralModelLabel(): string  { return 'Daftar Komisi'; }
+    public static function getNavigationLabel(): string   { return 'Komisi Agen'; }
 
     public static function form(Form $form): Form
     {

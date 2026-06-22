@@ -13,20 +13,40 @@ class ShipmentTrends extends ChartWidget
 
     protected function getData(): array
     {
-        // Karena created_at adalah integer (Legacy), kita hitung manual per hari
-        $results = [];
-        $labels = [];
-        
-        for ($i = 29; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $startOfDay = (clone $date)->startOfDay()->timestamp;
-            $endOfDay = (clone $date)->endOfDay()->timestamp;
+        $cachedData = \Illuminate\Support\Facades\Cache::remember('shipment_trends_30d', 3600, function () {
+            $start = now()->subDays(29)->startOfDay();
+            $end = now()->endOfDay();
+
+            // Query legacy (integer timestamp)
+            $legacyByDate = ShipItem::selectRaw('DATE(FROM_UNIXTIME(created_at)) as date, COUNT(*) as total')
+                ->whereBetween('created_at', [$start->timestamp, $end->timestamp])
+                ->groupBy('date')
+                ->pluck('total', 'date');
+
+            // Query modern (timestamp)
+            $newByDate = \App\Models\Shipment::selectRaw('DATE(created_at) as date, COUNT(*) as total')
+                ->whereBetween('created_at', [$start, $end])
+                ->groupBy('date')
+                ->pluck('total', 'date');
+
+            $results = [];
+            $labels = [];
             
-            $count = ShipItem::whereBetween('created_at', [$startOfDay, $endOfDay])->count();
-            
-            $results[] = $count;
-            $labels[] = $date->format('d M');
-        }
+            for ($i = 29; $i >= 0; $i--) {
+                $date = now()->subDays($i);
+                $dateStr = $date->format('Y-m-d');
+                $labels[] = $date->format('d M');
+
+                $legacyCount = $legacyByDate->get($dateStr, 0);
+                $newCount = $newByDate->get($dateStr, 0);
+
+                $results[] = $legacyCount + $newCount;
+            }
+            return ['results' => $results, 'labels' => $labels];
+        });
+
+        $results = $cachedData['results'];
+        $labels = $cachedData['labels'];
 
         return [
             'datasets' => [

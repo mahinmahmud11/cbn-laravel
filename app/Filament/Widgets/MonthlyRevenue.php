@@ -12,15 +12,17 @@ class MonthlyRevenue extends BaseWidget
 
     protected function getStats(): array
     {
-        $currentMonthRevenue = ShipItem::whereBetween('created_at', [
-            now()->startOfMonth()->timestamp,
-            now()->endOfMonth()->timestamp
-        ])->sum('price');
+        $currentMonthRevenue = \Illuminate\Support\Facades\Cache::remember('monthly_revenue_current', 3600, function () {
+            $legacy = ShipItem::createdBetween(now()->startOfMonth(), now()->endOfMonth())->sum('price');
+            $new = \App\Models\Shipment::createdBetween(now()->startOfMonth(), now()->endOfMonth())->sum('price');
+            return $legacy + $new;
+        });
 
-        $lastMonthRevenue = ShipItem::whereBetween('created_at', [
-            now()->subMonth()->startOfMonth()->timestamp,
-            now()->subMonth()->endOfMonth()->timestamp
-        ])->sum('price');
+        $lastMonthRevenue = \Illuminate\Support\Facades\Cache::remember('monthly_revenue_last', 3600, function () {
+            $legacy = ShipItem::createdBetween(now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth())->sum('price');
+            $new = \App\Models\Shipment::createdBetween(now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth())->sum('price');
+            return $legacy + $new;
+        });
 
         $diff = $currentMonthRevenue - $lastMonthRevenue;
         $increase = $lastMonthRevenue > 0 ? ($diff / $lastMonthRevenue) * 100 : 0;

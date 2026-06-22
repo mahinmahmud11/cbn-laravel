@@ -7,8 +7,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Models\Concerns\HasLegacyOrModernTimestamp;
+
 class ShipItem extends Model
 {
+    use HasLegacyOrModernTimestamp;
+
+    public bool $usesIntegerTimestamp = true;
     /**
      * The table associated with the model.
      *

@@ -44,9 +44,7 @@ class ShipItemsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\AttachAction::make()
-                    ->preloadRecordSelect()
-                    ->multiple(),
+                // Disable attach action for legacy ship items
             ])
             ->actions([
                 Tables\Actions\DetachAction::make(),
