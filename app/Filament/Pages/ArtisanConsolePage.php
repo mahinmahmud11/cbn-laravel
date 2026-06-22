@@ -31,6 +31,7 @@ class ArtisanConsolePage extends Page implements HasForms
         'view:clear'                => ['cmd' => 'view:clear',             'args' => []],
         'route:clear'               => ['cmd' => 'route:clear',            'args' => []],
         'queue:restart'             => ['cmd' => 'queue:restart',          'args' => []],
+        'migrate'                   => ['cmd' => 'migrate',                'args' => ['--force' => true]],
         'migrate:status'            => ['cmd' => 'migrate:status',         'args' => []],
         'storage:link'              => ['cmd' => 'storage:link',           'args' => ['--force' => true]],
         'activitylog:clean --days=90' => ['cmd' => 'activitylog:clean',   'args' => ['--days' => 90]],
